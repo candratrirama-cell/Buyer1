@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartAI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+    <div id="landing-page" class="landing-container">
+        <div class="landing-header">
+            <div class="logo-area">
+                <span class="material-icons-round logo-icon">ac_unit</span>
+                <span class="logo-text">SanexusAI</span>
+            </div>
+            <span class="skip-btn">v2.0</span>
+        </div>
+        <div class="landing-hero">
+            <h1>Explore <br><i>infinite</i> <br><span class="highlight-text">capabilities</span> <br>of searching</h1>
+        </div>
+        <div class="feature-stack">
+            <div class="feature-card" id="enter-app-btn">
+                <div class="icon-circle"><span class="material-icons-round">bolt</span></div>
+                <div class="feature-text">
+                    <h3>Get Started</h3>
+                    <p>Start your journey with Gemini AI</p>
+                </div>
+                <span class="material-icons-round arrow">arrow_forward</span>
+            </div>
+        </div>
+    </div>
+    <div id="main-app" class="app-container hidden-section">
+        <header class="app-header">
+            <button class="icon-btn" id="menu-toggle"><span class="material-icons-round">menu</span></button>
+            <div class="logo-small">SanexusAI</div>
+            <button class="icon-btn"><span class="material-icons-round">account_circle</span></button>
+        </header>
+        <div id="sidebar-overlay" class="sidebar-hidden">
+            <div class="sidebar-content">
+                <div class="sidebar-top">
+                    <h3>History</h3>
+                    <button class="icon-btn" id="close-sidebar"><span class="material-icons-round">close</span></button>
+                </div>
+                <div class="history-list-container"><ul id="history-list"></ul></div>
+            </div>
+        </div>
+        <main class="content-area">
+            <div id="welcome-screen"><h2 class="welcome-title">Mau cari apa <br><i>hari ini?</i></h2></div>
+            <div id="loading" class="hidden"><div class="loading-shimmer"></div><p>Menganalisis data...</p></div>
+            <div id="result-container" class="hidden">
+                <div class="query-header"><h3 id="user-query-display"></h3></div>
+                <div class="answer-bubble">
+                    <div class="answer-content" id="answer-text"></div>
+                    <div class="bubble-footer">
+                        <div class="action-icons">
+                            <span class="material-icons-round">content_copy</span>
+                            <span class="material-icons-round">thumb_up</span>
+                            <span class="material-icons-round">thumb_down</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h4><span class="material-icons-round">link</span> Sources</h4>
+                    <ul class="source-list" id="sources-list"></ul>
+                </div>
+                <div class="info-card">
+                    <h4><span class="material-icons-round">manage_search</span> Related</h4>
+                    <ul class="similar-list" id="similar-list"></ul>
+                </div>
+                <div style="height: 100px;"></div>
+            </div>
+        </main>
+        <div class="input-area-fixed">
+            <form id="search-form" class="search-bar-wrapper">
+                <input type="text" id="question-input" placeholder="Type your question..." autocomplete="off" required>
+                <button type="submit" id="submit-btn"><span class="material-icons-round">arrow_upward</span></button>
+            </form>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
