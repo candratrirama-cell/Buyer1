@@ -1,61 +1,73 @@
-const API_KEY = "AIzaSyDHSXSFVo2f63fjOMhLRY6xSnAzDZK3ouI";
+// api/index.js
+const axios = require('axios');
 
-export default async function handler(req, res) {
-    // Detect environment & get question
-    let question;
-    if (req.query && req.query.question) {
-        question = req.query.question;
-    } else {
-        const url = new URL(req.url, `http://${req.headers?.host || 'localhost'}`);
-        question = url.searchParams.get('question');
+// Fungsi utama dari request kamu
+async function turboseekLogic(question) {
+    try {
+        if (!question) throw new Error('Question is required.');
+        
+        const inst = axios.create({
+            baseURL: 'https://www.turboseek.io/api',
+            headers: {
+                origin: 'https://www.turboseek.io',
+                referer: 'https://www.turboseek.io/',
+                'user-agent': 'Mozilla/5.0 (Linux; Android 15; SM-F958 Build/AP3A.240905.015) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.86 Mobile Safari/537.36'
+            }
+        });
+        
+        // 1. Get Sources
+        const { data: sources } = await inst.post('/getSources', {
+            question: question
+        });
+        
+        // 2. Get Similar Questions
+        const { data: similarQuestions } = await inst.post('/getSimilarQuestions', {
+            question: question,
+            sources: sources
+        });
+        
+        // 3. Get Answer
+        const { data: answer } = await inst.post('/getAnswer', {
+            question: question,
+            sources: sources
+        });
+        
+        // Cleaning answer logic as provided
+        const cleanAnswer = answer.match(/<p>(.*?)<\/p>/gs)?.map(match => {
+            return match.replace(/<\/?p>/g, '').replace(/<\/?strong>/g, '').replace(/<\/?em>/g, '').replace(/<\/?b>/g, '').replace(/<\/?i>/g, '').replace(/<\/?u>/g, '').replace(/<\/?[^>]+(>|$)/g, '').trim();
+        }).join('\n\n') || answer.replace(/<\/?[^>]+(>|$)/g, '').trim();
+        
+        return {
+            answer: cleanAnswer,
+            sources: sources.map(s => s.url), // Mengambil URL saja
+            similarQuestions
+        };
+    } catch (error) {
+        throw error;
     }
+}
 
-    // CORS Headers
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Content-Type': 'application/json'
-    };
-
+// Vercel Serverless Handler
+module.exports = async (req, res) => {
+    // Handle CORS
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
     if (req.method === 'OPTIONS') {
-        if (res && res.status) return res.status(200).end();
-        return new Response(null, { status: 200, headers });
+        res.status(200).end();
+        return;
     }
+
+    const { question } = req.query || req.body;
 
     if (!question) {
-        const errorBody = JSON.stringify({ error: 'Please provide a question' });
-        if (res && res.status) return res.status(400).send(errorBody);
-        return new Response(errorBody, { status: 400, headers });
+        return res.status(400).json({ error: 'Please provide a question' });
     }
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: question }] }]
-            })
-        });
-
-        const data = await response.json();
-        const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, tidak ada jawaban.";
-
-        // Format output 100% sesuai kebutuhan script.js asli
-        const result = JSON.stringify({
-            answer: fullText,
-            sources: ["https://google.com"],
-            similarQuestions: ["Jelaskan lebih detail", "Berikan contoh lain", "Apa kesimpulannya?"]
-        });
-
-        if (res && res.status) {
-            return res.status(200).send(result);
-        } else {
-            return new Response(result, { status: 200, headers });
-        }
+        const result = await turboseekLogic(question);
+        return res.status(200).json(result);
     } catch (error) {
-        const errorMsg = JSON.stringify({ error: error.message });
-        if (res && res.status) return res.status(500).send(errorMsg);
-        return new Response(errorMsg, { status: 500, headers });
+        return res.status(500).json({ error: error.message });
     }
-}
+};
