@@ -20,47 +20,40 @@
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: var(--bg-main); color: #ececf1; margin: 0; overflow-x: hidden; }
         
-        /* Custom scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: #1f1f1f; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 20px; }
         
-        /* Sidebar animation */
         .sidebar { background-color: var(--bg-side); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 60; }
         
-        /* Chat bubbles */
         .bubble { max-width: 88%; line-height: 1.6; transition: all 0.2s; }
         .bubble-user { background: var(--bubble-user); border-radius: 1.5rem; padding: 0.8rem 1.2rem; border-bottom-right-radius: 0.25rem; }
         .bubble-ai { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); border-radius: 1.5rem; padding: 0.8rem 1.2rem; border-bottom-left-radius: 0.25rem; }
         
-        /* Typing indicator */
         .typing-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
         @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
         
-        /* Source cards */
         .source-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; transition: all 0.2s; cursor: pointer; backdrop-filter: blur(4px); }
         .source-card:hover { background: rgba(59,130,246,0.15); border-color: var(--accent); transform: translateY(-2px); }
         
-        /* Interactive */
         button:active { transform: scale(0.96); }
         .sidebar-item:hover { background: rgba(255,255,255,0.05); border-radius: 0.75rem; }
         
-        /* Fade animations */
         .fade-enter { opacity: 0; transform: translateY(10px); }
         .fade-enter-active { opacity: 1; transform: translateY(0); transition: all 0.4s ease-out; }
         
-        /* Glow effect */
         .glow-text { text-shadow: 0 0 8px rgba(59,130,246,0.5); }
+        
+        /* History item active state */
+        .history-active { background: rgba(59,130,246,0.2) !important; border-left: 3px solid #3b82f6; }
     </style>
 </head>
 <body class="antialiased overflow-hidden">
 
-    <!-- MAIN APP WRAPPER (initially hidden until landing dismissed) -->
     <div id="app-wrapper" class="hidden">
         <div id="app" class="flex h-screen w-full relative">
         
-            <!-- SIDEBAR -->
             <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 w-72 transform -translate-x-full lg:translate-x-0 lg:relative flex flex-col border-r border-white/5">
                 <div class="p-4">
                     <button onclick="resetConversation()" class="flex items-center justify-center gap-3 w-full bg-white/5 border border-white/10 p-3 rounded-xl hover:bg-white/10 transition-all font-bold text-sm">
@@ -84,16 +77,13 @@
                 </div>
             </aside>
 
-            <!-- MAIN CHAT AREA -->
             <main class="flex-1 flex flex-col relative h-full overflow-hidden">
-                <!-- Mobile Header -->
                 <header class="lg:hidden flex items-center justify-between px-5 py-4 border-b border-white/5 bg-[#212121]/90 backdrop-blur-md sticky top-0 z-40">
-                    <button id="menu-toggle" onclick="toggleSidebar()" class="p-2 -ml-2"><i class="fa-solid fa-bars-staggered text-xl"></i></button>
+                    <button onclick="toggleSidebar()" class="p-2 -ml-2"><i class="fa-solid fa-bars-staggered text-xl"></i></button>
                     <h1 class="text-lg font-black tracking-tighter bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent italic">LUNAN AI</h1>
                     <button onclick="resetConversation()" class="p-2 -mr-2"><i class="fa-solid fa-rotate-right opacity-40 text-lg"></i></button>
                 </header>
 
-                <!-- Chat Scroll Container -->
                 <div id="chat-container" class="flex-1 overflow-y-auto custom-scroll scroll-smooth">
                     <div id="welcome-view" class="h-full flex flex-col items-center justify-center text-center space-y-5 px-10">
                         <div class="w-20 h-20 rounded-[2rem] bg-blue-500/10 flex items-center justify-center border border-blue-500/30 shadow-2xl shadow-blue-500/10">
@@ -108,7 +98,6 @@
                     <div class="h-44"></div>
                 </div>
 
-                <!-- Input Area -->
                 <div class="absolute bottom-0 left-0 w-full p-4 lg:p-6 bg-gradient-to-t from-[#212121] via-[#212121] to-transparent pointer-events-none">
                     <div class="max-w-3xl mx-auto pointer-events-auto">
                         <div class="bg-[#2f2f2f] rounded-3xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-blue-500/60 transition duration-300">
@@ -132,7 +121,6 @@
         </div>
     </div>
 
-    <!-- LANDING PAGE (Modern Intro) -->
     <div id="landing-page" class="fixed inset-0 bg-gradient-to-br from-[#0a0a0a] to-[#171717] z-[110] flex flex-col items-center justify-center p-6 transition-all duration-700">
         <div class="space-y-8 text-center max-w-sm w-full">
             <div class="relative">
@@ -151,10 +139,22 @@
         </div>
     </div>
 
+    <div id="login-modal" class="fixed inset-0 bg-[#0a0a0a] z-[100] flex items-center justify-center p-6 hidden">
+        <div class="text-center space-y-8 max-w-xs w-full">
+            <div class="w-24 h-24 bg-blue-600 rounded-[2.5rem] mx-auto flex items-center justify-center shadow-2xl shadow-blue-600/30 rotate-6">
+                <i class="fa-solid fa-bolt text-5xl text-white"></i>
+            </div>
+            <h1 class="text-4xl font-black italic tracking-tighter text-white">LUNAN <span class="text-blue-500">AI</span></h1>
+            <button onclick="window.handleLogin && handleLogin()" class="w-full bg-white text-black font-black py-5 rounded-[1.5rem] flex items-center justify-center gap-3 hover:bg-gray-100 transition active:scale-95 shadow-xl">
+                <i class="fa-brands fa-google text-xl"></i> MASUK DENGAN GOOGLE
+            </button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getDatabase, ref, push, onValue, query, limitToLast, get, set } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, query, limitToLast, get, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3IrREql-1PG1DhZQZklptxITQz_wOHZM",
@@ -169,8 +169,8 @@
         const db = getDatabase(app);
         let activeUser = null;
         let currentWaitId = null;
+        let currentHistoryKey = null;
 
-        // Global reset function
         window.resetConversation = () => {
             const flowDiv = document.getElementById('message-flow');
             if(flowDiv) flowDiv.innerHTML = '';
@@ -178,26 +178,52 @@
             const textarea = document.getElementById('user-input');
             if(textarea) { textarea.value = ''; autoResize(textarea); }
             document.getElementById('send-btn').disabled = true;
+            currentHistoryKey = null;
+            
+            // Remove active class from all history items
+            document.querySelectorAll('.history-item').forEach(item => {
+                item.classList.remove('history-active');
+            });
         };
 
-        // Auth State Handler
+        // Load conversation from history
+        window.loadConversation = (question, answer, timestamp, key) => {
+            const flowDiv = document.getElementById('message-flow');
+            flowDiv.innerHTML = '';
+            document.getElementById('welcome-view').classList.add('hidden');
+            
+            renderBubble('user', question);
+            renderBubble('ai', answer, []);
+            
+            currentHistoryKey = key;
+            
+            // Update active state in sidebar
+            document.querySelectorAll('.history-item').forEach(item => {
+                item.classList.remove('history-active');
+            });
+            const activeItem = document.querySelector(`.history-item[data-key="${key}"]`);
+            if(activeItem) activeItem.classList.add('history-active');
+            
+            scrollToBottom();
+        };
+
         onAuthStateChanged(auth, user => {
             if(user) {
                 activeUser = user;
                 document.getElementById('app-wrapper').classList.remove('hidden');
+                document.getElementById('login-modal').classList.add('hidden');
                 document.getElementById('u-name').innerText = user.displayName || user.email.split('@')[0];
                 document.getElementById('u-ico').innerText = (user.displayName ? user.displayName.charAt(0) : user.email.charAt(0)).toUpperCase();
                 syncHistory();
             } else {
                 document.getElementById('app-wrapper').classList.add('hidden');
-                // keep landing if not logged in? but landing is separate.
+                document.getElementById('login-modal').classList.remove('hidden');
             }
         });
 
         window.handleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
         window.handleLogout = () => signOut(auth).then(() => { location.reload(); });
         
-        // Sidebar toggle
         window.toggleSidebar = () => {
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('sidebar-overlay');
@@ -218,7 +244,6 @@
             if(sendBtn) sendBtn.disabled = !el.value.trim();
         };
 
-        // Typing Indicator
         function showWait() {
             if(currentWaitId) {
                 const old = document.getElementById(currentWaitId);
@@ -245,7 +270,7 @@
             }
         }
 
-        function renderBubble(role, text, sources = []) {
+        window.renderBubble = function(role, text, sources = []) {
             removeWait();
             const flow = document.getElementById('message-flow');
             const isAi = role === 'ai';
@@ -281,16 +306,25 @@
                     </div>
                 </div>`;
             scrollToBottom();
-        }
+        };
 
         async function saveToBrain(question, answer) {
             if(!activeUser) return;
             try {
-                await push(ref(db, 'brain'), { topic: question.toLowerCase(), content: answer, timestamp: Date.now() });
+                const brainRef = ref(db, 'brain');
+                const snapshot = await get(brainRef);
+                let exists = false;
+                snapshot.forEach(child => {
+                    if(child.val().topic && child.val().topic.toLowerCase() === question.toLowerCase()) {
+                        exists = true;
+                    }
+                });
+                if(!exists) {
+                    await push(brainRef, { topic: question.toLowerCase(), content: answer, timestamp: Date.now() });
+                }
             } catch(e) { console.warn("Brain save error", e); }
         }
 
-        // Main Chat Logic (Integration with Vercel API + Brain fallback)
         window.processChat = async () => {
             if(!activeUser) {
                 alert("Silakan login terlebih dahulu.");
@@ -300,11 +334,9 @@
             const question = input.value.trim();
             if(!question) return;
             
-            // Disable send button during process
             const sendBtn = document.getElementById('send-btn');
             sendBtn.disabled = true;
             
-            // Render user bubble
             renderBubble('user', question);
             input.value = "";
             input.style.height = "auto";
@@ -312,7 +344,6 @@
             showWait();
             
             try {
-                // 1. Check local brain memory (exact topic match only)
                 const brainSnap = await get(ref(db, 'brain'));
                 const brainData = brainSnap.val();
                 let localAnswer = null;
@@ -332,14 +363,12 @@
                         saveChatHistory(question, localAnswer);
                     }, 300);
                 } else {
-                    // 2. Call Vercel Edge Function (/api)
                     const res = await fetch('/api', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             question: question,
-                            userId: activeUser.uid,
-                            context: "Berikan jawaban akurat, gaya inovatif dan terkini."
+                            userId: activeUser.uid
                         })
                     });
                     
@@ -365,37 +394,46 @@
             if(!activeUser) return;
             try {
                 const chatRef = ref(db, `chats/${activeUser.uid}`);
-                await push(chatRef, { q, a, timestamp: Date.now() });
-                syncHistory(); // refresh sidebar
+                const newChatRef = await push(chatRef, { q, a, timestamp: Date.now() });
+                syncHistory();
+                return newChatRef.key;
             } catch(e) { console.warn(e); }
         }
         
         function syncHistory() {
             if(!activeUser) return;
-            const historyRef = query(ref(db, `chats/${activeUser.uid}`), limitToLast(15));
+            const historyRef = query(ref(db, `chats/${activeUser.uid}`), orderByChild('timestamp'));
             onValue(historyRef, (snapshot) => {
                 const listDiv = document.getElementById('history-list');
                 if(!listDiv) return;
                 listDiv.innerHTML = '';
                 const items = [];
-                snapshot.forEach(child => items.push(child.val()));
-                // show recent on top? reverse for latest first but we want newest at top
-                items.reverse().forEach(doc => {
-                    if(doc.q) {
+                snapshot.forEach(child => {
+                    items.push({ 
+                        key: child.key, 
+                        ...child.val() 
+                    });
+                });
+                
+                // Show from newest to oldest
+                items.reverse().forEach(item => {
+                    if(item.q) {
                         const div = document.createElement('div');
-                        div.className = "p-3 rounded-xl sidebar-item truncate flex items-center gap-3 transition cursor-pointer hover:bg-white/5";
-                        div.innerHTML = `<i class="fa-regular fa-comment opacity-30 text-[10px]"></i><span class="truncate text-gray-300 text-xs">${doc.q.substring(0, 45)}</span>`;
+                        div.className = "p-3 rounded-xl sidebar-item truncate flex items-center gap-3 transition cursor-pointer hover:bg-white/5 history-item";
+                        div.setAttribute('data-key', item.key);
+                        div.innerHTML = `<i class="fa-regular fa-comment opacity-30 text-[10px]"></i><span class="truncate text-gray-300 text-xs">${item.q.substring(0, 45)}</span>`;
                         div.onclick = () => {
-                            // restore conversation preview (just scroll UI, not fully load conversation history - simple)
-                            alert("Riwayat percakapan: " + doc.q + "\n\n" + (doc.a || "Balasan AI tersimpan."));
+                            loadConversation(item.q, item.a, item.timestamp, item.key);
+                            if(window.innerWidth < 1024) toggleSidebar();
                         };
                         listDiv.appendChild(div);
                     }
                 });
+                
                 if(items.length === 0) {
                     listDiv.innerHTML = '<div class="text-center text-gray-500 text-[11px] py-8 opacity-50">✨ Belum ada percakapan</div>';
                 }
-            }, { onlyOnce: false });
+            });
         }
         
         function scrollToBottom() {
@@ -403,17 +441,14 @@
             if(container) setTimeout(() => container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' }), 50);
         }
         
-        // Expose logout to window
-        window.handleLogout = () => signOut(auth).then(() => location.reload());
-        
-        // Initial event binding after DOM
         document.addEventListener('DOMContentLoaded', () => {
             const textarea = document.getElementById('user-input');
             if(textarea) {
                 textarea.addEventListener('keydown', (e) => {
                     if(e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        if(!document.getElementById('send-btn').disabled) processChat();
+                        const sendBtn = document.getElementById('send-btn');
+                        if(!sendBtn.disabled) processChat();
                     }
                 });
             }
@@ -421,7 +456,6 @@
     </script>
 
     <script>
-        // Landing & Integration functions (pure JS)
         function enterApp() {
             const landing = document.getElementById('landing-page');
             if(landing) {
@@ -430,51 +464,11 @@
                 setTimeout(() => {
                     landing.style.display = 'none';
                     landing.remove();
-                    // Check if user already logged in else login modal is active via firebase state
-                    // The login modal is inside index but we manage via firebase onAuthStateChanged.
-                    // However hardcoded login-modal element is missing? But original code had login-modal.
-                    // We'll insert login modal fallback if needed. To ensure seamless: 
-                    // The app wrapper may show before login if not logged. So force checking.
-                    const wrapper = document.getElementById('app-wrapper');
-                    if(wrapper && wrapper.classList.contains('hidden')) {
-                        // show login modal if not already visible?
-                        if(!document.getElementById('login-modal')) {
-                            const modalDiv = document.createElement('div');
-                            modalDiv.id = 'login-modal';
-                            modalDiv.className = 'fixed inset-0 bg-[#0a0a0a] z-[100] flex items-center justify-center p-6';
-                            modalDiv.innerHTML = `
-                                <div class="text-center space-y-8 max-w-xs w-full">
-                                    <div class="w-24 h-24 bg-blue-600 rounded-[2.5rem] mx-auto flex items-center justify-center shadow-2xl shadow-blue-600/30 rotate-6">
-                                        <i class="fa-solid fa-bolt text-5xl text-white"></i>
-                                    </div>
-                                    <h1 class="text-4xl font-black italic tracking-tighter text-white">LUNAN <span class="text-blue-500">AI</span></h1>
-                                    <button onclick="window.handleLogin && handleLogin()" class="w-full bg-white text-black font-black py-5 rounded-[1.5rem] flex items-center justify-center gap-3 hover:bg-gray-100 transition active:scale-95 shadow-xl">
-                                        <i class="fa-brands fa-google text-xl"></i> MASUK DENGAN GOOGLE
-                                    </button>
-                                </div>`;
-                            document.body.appendChild(modalDiv);
-                        }
-                    }
                 }, 500);
             }
         }
 
-        // Fallback: make sure global enterApp available
         window.enterApp = enterApp;
-        
-        // If for any reason login-modal is not triggered, but landing removes fine.
-        // Since original had seperate login-modal hiding using firebase state, we added conditional.
-        // Additionally expose resetConversation
-        window.resetConversation = window.resetConversation || function() {
-            const flow = document.getElementById('message-flow');
-            if(flow) flow.innerHTML = '';
-            const welcome = document.getElementById('welcome-view');
-            if(welcome) welcome.classList.remove('hidden');
-            const textarea = document.getElementById('user-input');
-            if(textarea) { textarea.value = ''; if(window.autoResize) autoResize(textarea); }
-            const sendBtn = document.getElementById('send-btn');
-            if(sendBtn) sendBtn.disabled = true;
-        };
     </script>
 </body>
 </html>
