@@ -12,10 +12,11 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); color: #ececf1; margin: 0; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .sidebar { background-color: var(--bg-side); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 60; }
-        .bubble { max-width: 88%; line-height: 1.6; }
+        .bubble { max-width: 88%; line-height: 1.6; transition: all 0.2s; }
         .bubble-user { background: #2f2f2f; border-radius: 1.25rem; padding: 0.8rem 1.1rem; border-bottom-right-radius: 0.25rem; }
         .glass-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px); }
         .code-block { background: #000; padding: 12px; border-radius: 12px; font-family: monospace; font-size: 11px; color: #10b981; overflow-x: auto; }
+        .hero-gradient { background: radial-gradient(circle at 50% 50%, #3b82f615 0%, transparent 70%); }
     </style>
 </head>
 <body class="antialiased overflow-hidden">
@@ -61,12 +62,18 @@
         </aside>
 
         <main class="flex-1 flex flex-col relative h-full overflow-hidden">
+            <header class="lg:hidden flex items-center justify-between px-5 py-4 border-b border-white/5 bg-[#212121]/80 backdrop-blur-md sticky top-0 z-40">
+                <button onclick="toggleSidebar()" class="p-2"><i class="fa-solid fa-bars-staggered text-xl"></i></button>
+                <h1 class="text-lg font-black tracking-tighter text-blue-500 italic">LUNAN AI</h1>
+                <div class="w-8"></div>
+            </header>
+
             <div id="chat-container" class="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
                 <div id="welcome-view" class="h-full flex flex-col items-center justify-center text-center space-y-5 px-10">
-                    <div class="w-20 h-20 rounded-[2.5rem] bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <div class="w-20 h-20 rounded-[2.5rem] bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-2xl">
                         <i class="fa-solid fa-brain text-4xl text-blue-500"></i>
                     </div>
-                    <h2 class="text-xl font-bold text-white tracking-tight">Lunan Intelligence</h2>
+                    <h2 class="text-xl font-bold text-white tracking-tight">Neural Network Active</h2>
                 </div>
                 <div id="message-flow" class="max-w-3xl mx-auto w-full pt-6"></div>
                 <div class="h-44"></div>
@@ -76,12 +83,13 @@
                 <div class="max-w-3xl mx-auto pointer-events-auto">
                     <div class="bg-[#2f2f2f] rounded-3xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-blue-500/50 transition duration-300">
                         <div class="flex items-end px-4 py-3 gap-3">
-                            <textarea id="user-input" rows="1" class="bg-transparent flex-1 py-2 outline-none resize-none text-sm no-scrollbar min-h-[40px]" placeholder="Tanyakan apapun..." oninput="autoResize(this)"></textarea>
-                            <button id="send-btn" onclick="processChat()" class="bg-blue-600 text-white w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-blue-500 transition disabled:opacity-20">
+                            <textarea id="user-input" rows="1" class="bg-transparent flex-1 py-2 outline-none resize-none text-sm no-scrollbar min-h-[40px]" placeholder="Tanyakan berita atau kode..." oninput="autoResize(this)"></textarea>
+                            <button id="send-btn" onclick="processChat()" class="bg-blue-600 text-white w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-blue-500 transition disabled:opacity-20 active:scale-90">
                                 <i class="fa-solid fa-arrow-up"></i>
                             </button>
                         </div>
                     </div>
+                    <p class="text-[9px] text-center text-gray-600 mt-3 font-bold uppercase tracking-tighter">Powered by R Holdings • lunanai.rzone.web.id</p>
                 </div>
             </div>
         </main>
@@ -95,57 +103,35 @@
             </div>
             <div class="p-6 overflow-y-auto space-y-6 no-scrollbar text-sm">
                 <section class="space-y-2">
-                    <h4 class="font-bold text-white">1. Base URL</h4>
-                    <p class="text-gray-400">Gunakan endpoint ini untuk melakukan request via aplikasi pihak ketiga.</p>
-                    <div class="code-block text-blue-400">https://lunanai.rzone.web.id/api</div>
+                    <h4 class="font-bold text-white">Endpoint</h4>
+                    <div class="code-block text-blue-400">POST https://lunanai.rzone.web.id/api</div>
                 </section>
                 <section class="space-y-2">
-                    <h4 class="font-bold text-white">2. Request Example (Fetch JS)</h4>
-                    <div class="code-block">
-fetch('https://lunanai.rzone.web.id/api', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': '<span class="text-blue-500" id="docs-key">rzo_xxxxxx</span>'
-  },
-  body: JSON.stringify({
-    question: "Siapa presiden Indonesia saat ini?"
-  })
-}).then(res => res.json()).then(console.log);
-                    </div>
+                    <h4 class="font-bold text-white">Header</h4>
+                    <div class="code-block">Content-Type: application/json<br>x-api-key: <span id="docs-key" class="text-blue-500">rzo_xxxxxx</span></div>
                 </section>
                 <section class="space-y-2">
-                    <h4 class="font-bold text-white">3. Response Format</h4>
-                    <div class="code-block">
-{
-  "answer": "Hasil jawaban AI disini...",
-  "sources": [
-    {"title": "Judul Berita", "link": "https://..."}
-  ],
-  "usage": 1
-}
-                    </div>
+                    <h4 class="font-bold text-white">Request Body</h4>
+                    <div class="code-block">{ "question": "Apa itu Lunan AI?" }</div>
                 </section>
-                <div class="p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-                    <p class="text-[10px] text-blue-400 font-bold leading-relaxed italic">Catatan: Limit 100 request/bulan. Sistem akan mendeteksi otomatis jika pertanyaan membutuhkan pencarian berita real-time.</p>
-                </div>
             </div>
         </div>
     </div>
 
-    <div id="login-modal" class="fixed inset-0 bg-[#0a0a0a] z-[100] hidden">
-        <div class="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8">
+    <div id="login-modal" class="fixed inset-0 bg-[#0a0a0a] z-[100] hidden flex flex-col items-center justify-center p-6 hero-gradient space-y-8">
+        <div class="text-center space-y-4">
             <h1 class="text-7xl font-black italic tracking-tighter text-white">LUNAN <span class="text-blue-500">AI</span></h1>
-            <button onclick="handleLogin()" class="px-8 py-4 bg-white text-black font-black rounded-2xl flex items-center gap-3 hover:bg-blue-500 hover:text-white transition shadow-2xl">
-                <i class="fa-brands fa-google"></i> LOGIN WITH GOOGLE
-            </button>
+            <p class="text-gray-400">Smart Search & Developer AI Base.</p>
         </div>
+        <button onclick="handleLogin()" class="px-8 py-4 bg-white text-black font-black rounded-2xl flex items-center gap-3 hover:bg-blue-500 hover:text-white transition shadow-2xl active:scale-95">
+            <i class="fa-brands fa-google text-xl"></i> MASUK DENGAN GOOGLE
+        </button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+        import { getDatabase, ref, get, set, onValue, push, query, limitToLast } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3IrREql-1PG1DhZQZklptxITQz_wOHZM",
@@ -163,7 +149,7 @@ fetch('https://lunanai.rzone.web.id/api', {
         onAuthStateChanged(auth, async user => {
             if(user) {
                 activeUser = user;
-                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('login-modal').style.display = 'none';
                 document.getElementById('u-name').innerText = user.displayName;
                 document.getElementById('u-ico').innerText = user.displayName.charAt(0);
                 
@@ -176,30 +162,81 @@ fetch('https://lunanai.rzone.web.id/api', {
                     document.getElementById('api-usage').innerText = `${data.usage || 0} / 100`;
                     window.currentApiKey = data.apiKey;
                 });
+                syncHistory();
             } else {
-                document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('login-modal').style.display = 'flex';
             }
         });
 
         window.regenerateApiKey = async () => {
             if(!activeUser) return;
             const newKey = 'rzo_' + Array.from(crypto.getRandomValues(new Uint8Array(12))).map(b => b.toString(16).padStart(2, '0')).join('');
-            const userRef = ref(db, `users/${activeUser.uid}`);
-            const snap = await get(userRef);
-            const currentData = snap.val() || { usage: 0, lastReset: new Date().getMonth() };
-            await set(userRef, { ...currentData, apiKey: newKey });
-            alert('API Key baru telah dibuat!');
+            await set(ref(db, `users/${activeUser.uid}`), { apiKey: newKey, usage: 0, lastReset: new Date().getMonth() });
         };
 
         window.showDocs = () => document.getElementById('docs-modal').classList.remove('hidden');
         window.closeDocs = () => document.getElementById('docs-modal').classList.add('hidden');
         window.handleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
         window.handleLogout = () => signOut(auth).then(() => location.reload());
-        window.copyApiKey = () => {
-            navigator.clipboard.writeText(window.currentApiKey);
-            alert('Copied!');
+        window.copyApiKey = () => { navigator.clipboard.writeText(window.currentApiKey); alert('Copied!'); };
+        window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        window.autoResize = (el) => { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; };
+
+        window.processChat = async () => {
+            const input = document.getElementById('user-input');
+            const q = input.value.trim();
+            if(!q) return;
+
+            document.getElementById('welcome-view').classList.add('hidden');
+            renderBubble('user', q);
+            input.value = ""; input.style.height = 'auto';
+            showWait();
+
+            try {
+                const res = await fetch('/api', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ question: q, apiKey: window.currentApiKey })
+                });
+                const data = await res.json();
+                renderBubble('ai', data.answer, data.sources || []);
+                await push(ref(db, `chats/${activeUser.uid}`), { q, a: data.answer, t: Date.now() });
+            } catch(e) {
+                renderBubble('ai', 'Neural system error.');
+            }
         };
-        // Sisanya (processChat, renderBubble) tetap sama sesuai file asli Anda...
+
+        function showWait() {
+            const flow = document.getElementById('message-flow');
+            const id = "wait-"+Date.now();
+            flow.innerHTML += `<div id="${id}" class="flex gap-4 px-4 py-8"><div class="w-9 h-9 rounded-xl bg-[#10a37f] flex items-center justify-center text-white shrink-0">L</div><div class="flex gap-1.5 items-center bg-[#2f2f2f] px-5 rounded-2xl"><div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div></div></div>`;
+            window.lastWaitId = id;
+            scrollToBottom();
+        }
+
+        function renderBubble(role, text, sources = []) {
+            if(window.lastWaitId) document.getElementById(window.lastWaitId)?.remove();
+            const flow = document.getElementById('message-flow');
+            const isAi = role === 'ai';
+            let sHtml = sources.length ? `<div class="mt-4 flex flex-wrap gap-2">${sources.map(s => `<a href="${s.link}" target="_blank" class="p-2 bg-white/5 rounded-lg text-[10px] border border-white/10">${s.title}</a>`).join('')}</div>` : '';
+            flow.innerHTML += `<div class="flex gap-4 px-4 py-8 ${!isAi ? 'flex-row-reverse' : ''}"><div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${isAi ? 'bg-[#10a37f]' : 'bg-blue-600'}"><i class="fa-solid ${isAi ? 'fa-robot' : 'fa-user'}"></i></div><div class="bubble ${!isAi ? 'bubble-user' : ''}"><div class="text-[9px] opacity-30 mb-1 font-black uppercase">${role}</div><div class="text-sm">${text}</div>${sHtml}</div></div>`;
+            scrollToBottom();
+        }
+
+        function syncHistory() {
+            onValue(query(ref(db, `chats/${activeUser.uid}`), limitToLast(10)), s => {
+                const list = document.getElementById('history-list');
+                list.innerHTML = "";
+                s.forEach(c => {
+                    list.innerHTML = `<div class="p-3 rounded-xl hover:bg-white/5 truncate cursor-pointer flex items-center gap-2 transition"><i class="fa-regular fa-comment opacity-30"></i><span class="truncate">${c.val().q}</span></div>` + list.innerHTML;
+                });
+            });
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chat-container');
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
