@@ -7,66 +7,108 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #212121; color: #ececf1; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        body { background-color: #212121; color: #ececf1; }
-        .sidebar { background-color: #171717; }
-        .chat-area { background-color: #212121; }
-        .input-box { background-color: #2f2f2f; border: 1px solid rgba(255,255,255,0.1); }
-        pre { background: #0d0d0d; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.85rem; }
+        
+        /* Layout ChatGPT Colors */
+        .sidebar { background-color: #171717; transition: all 0.3s ease; }
+        .main-content { background-color: #212121; }
+        .input-container { background-color: #2f2f2f; border: 1px solid rgba(255,255,255,0.1); }
+        
+        /* Bubble Chat Style */
+        .user-row { background-color: transparent; }
+        .ai-row { background-color: transparent; }
+        
+        /* Markdown-ish formatting */
+        .prose code { background: #0d0d0d; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+        
+        /* Mobile Overlay */
+        #sidebar-overlay { background: rgba(0,0,0,0.5); display: none; }
     </style>
 </head>
-<body class="font-sans antialiased">
-    <div id="app" class="flex h-screen w-full">
+<body class="antialiased overflow-hidden">
+
+    <div id="app" class="flex h-screen w-full relative">
         
-        <aside id="sidebar" class="sidebar w-64 hidden md:flex flex-col border-r border-white/10 p-2">
-            <button onclick="window.location.reload()" class="flex items-center gap-3 border border-white/20 p-3 rounded-lg hover:bg-white/5 transition mb-4">
-                <i class="fa-solid fa-plus text-xs"></i> <span class="text-sm">Chat Baru</span>
-            </button>
-            <div id="history-list" class="flex-1 overflow-y-auto space-y-1 no-scrollbar text-xs">
+        <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 w-72 transform -translate-x-full md:translate-x-0 md:relative md:flex flex-col border-r border-white/10">
+            <div class="p-3">
+                <button onclick="newChat()" class="flex items-center gap-3 w-full border border-white/20 p-3 rounded-lg hover:bg-white/5 transition text-sm font-medium">
+                    <i class="fa-solid fa-plus"></i> Chat Baru
+                </button>
+            </div>
+
+            <div id="history-list" class="flex-1 overflow-y-auto px-3 space-y-1 no-scrollbar mt-2">
                 </div>
-            <div class="border-t border-white/10 p-2 mt-auto">
-                <button onclick="logout()" class="flex items-center gap-3 p-3 w-full rounded-lg hover:bg-white/5 transition">
-                    <i class="fa-solid fa-right-from-bracket"></i> <span>Keluar</span>
+
+            <div class="p-3 border-t border-white/10 space-y-1">
+                <div class="flex items-center gap-3 p-3 rounded-lg text-sm opacity-70">
+                    <div class="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-[10px]" id="user-initial">U</div>
+                    <span id="user-display-name" class="truncate">User</span>
+                </div>
+                <button onclick="handleLogout()" class="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-red-500/10 text-red-400 transition text-sm">
+                    <i class="fa-solid fa-right-from-bracket"></i> Keluar
                 </button>
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col relative h-full overflow-hidden">
+        <main class="flex-1 flex flex-col h-full relative overflow-hidden">
             
             <header class="md:hidden flex items-center justify-between p-4 border-b border-white/10">
-                <i class="fa-solid fa-bars cursor-pointer"></i>
-                <span class="font-bold">Lunan AI</span>
-                <i class="fa-solid fa-plus"></i>
+                <button onclick="toggleSidebar()"><i class="fa-solid fa-bars text-xl"></i></button>
+                <span class="font-semibold">Lunan AI</span>
+                <button onclick="newChat()"><i class="fa-solid fa-pen-to-square text-xl"></i></button>
             </header>
 
-            <div id="chat-box" class="flex-1 overflow-y-auto pt-10 pb-32 no-scrollbar">
-                <div id="welcome-view" class="h-full flex flex-col items-center justify-center space-y-4 opacity-50">
-                    <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
-                        <i class="fa-solid fa-bolt text-2xl"></i>
+            <div id="chat-container" class="flex-1 overflow-y-auto no-scrollbar">
+                <div id="welcome-screen" class="h-full flex flex-col items-center justify-center space-y-6 px-6 text-center">
+                    <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center border border-white/10 shadow-xl">
+                        <i class="fa-solid fa-bolt-lightning text-3xl text-blue-500"></i>
                     </div>
-                    <h2 class="text-2xl font-bold">Lunan AI</h2>
-                    <p class="text-sm">Bagaimana saya bisa membantu Anda hari ini?</p>
+                    <h2 class="text-3xl font-bold tracking-tight">Lunan AI Intelligence</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-2xl w-full">
+                        <div class="p-4 bg-white/5 border border-white/10 rounded-xl text-xs">"Apa berita terbaru hari ini?"</div>
+                        <div class="p-4 bg-white/5 border border-white/10 rounded-xl text-xs">"Jelaskan konsep kuantum komputer"</div>
+                        <div class="p-4 bg-white/5 border border-white/10 rounded-xl text-xs">"Buatkan kode Python untuk bot"</div>
+                    </div>
                 </div>
+                <div id="message-flow" class="w-full"></div>
+                <div id="anchor" class="h-32"></div>
             </div>
 
-            <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-[#212121] via-[#212121] to-transparent">
-                <div class="max-w-3xl mx-auto">
-                    <div class="input-box rounded-2xl p-2 shadow-2xl flex items-end">
-                        <textarea id="input-q" rows="1" class="bg-transparent flex-1 p-3 outline-none resize-none text-sm no-scrollbar" placeholder="Ketik pesan..." oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea>
-                        <button id="send-btn" onclick="handleSend()" class="bg-white text-black p-2 rounded-xl mb-1 mr-1 disabled:opacity-30">
-                            <i class="fa-solid fa-arrow-up"></i>
-                        </button>
+            <div class="absolute bottom-0 left-0 w-full p-4 md:p-8 bg-gradient-to-t from-[#212121] via-[#212121] to-transparent">
+                <div class="max-w-3xl mx-auto relative">
+                    <div class="input-container rounded-2xl shadow-2xl transition-all duration-200">
+                        <div class="flex items-end p-2 md:p-3">
+                            <textarea id="user-input" rows="1" 
+                                class="bg-transparent flex-1 p-2 outline-none resize-none text-sm md:text-base max-h-52 no-scrollbar" 
+                                placeholder="Ketik pesan ke Lunan AI..."
+                                oninput="autoResize(this)"></textarea>
+                            <button id="send-btn" onclick="processChat()" 
+                                class="bg-white text-black w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-200 transition disabled:opacity-20 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-arrow-up"></i>
+                            </button>
+                        </div>
                     </div>
-                    <p class="text-[10px] text-center text-gray-500 mt-2">Lunan AI dapat melakukan kesalahan. Pertimbangkan untuk memeriksa informasi penting.</p>
+                    <p class="text-[10px] text-center text-gray-500 mt-3 tracking-wide uppercase">Powered by Groq & Turboseek Intelligence</p>
                 </div>
             </div>
         </main>
+
+        <div id="sidebar-overlay" class="fixed inset-0 z-40" onclick="toggleSidebar()"></div>
     </div>
 
-    <div id="login-modal" class="fixed inset-0 bg-black flex items-center justify-center z-50">
-        <div class="text-center space-y-6">
-            <h1 class="text-5xl font-black italic tracking-tighter text-blue-500">LUNAN AI</h1>
-            <button onclick="login()" class="bg-white text-black font-bold px-10 py-4 rounded-full hover:scale-105 transition">Login dengan Google</button>
+    <div id="login-modal" class="fixed inset-0 bg-[#000] z-[100] flex items-center justify-center p-6 transition-opacity duration-500">
+        <div class="max-w-sm w-full text-center space-y-8">
+            <div class="inline-block p-4 bg-blue-600 rounded-3xl shadow-2xl shadow-blue-500/20 mb-4">
+                <i class="fa-solid fa-brain text-5xl text-white"></i>
+            </div>
+            <h1 class="text-5xl font-black italic tracking-tighter">LUNAN AI</h1>
+            <p class="text-gray-400 text-sm">Masuk untuk memulai percakapan cerdas yang didukung memori persisten.</p>
+            <button onclick="handleLogin()" class="w-full bg-white text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] transition transform">
+                <i class="fa-brands fa-google"></i> Lanjutkan dengan Google
+            </button>
         </div>
     </div>
 
@@ -86,114 +128,142 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
         const db = getDatabase(app);
-        let userNow = null;
+        let activeUser = null;
 
-        onAuthStateChanged(auth, u => {
-            if(u) {
-                userNow = u;
-                document.getElementById('login-modal').classList.add('hidden');
-                loadChat();
-                loadSidebar();
+        // --- AUTH LOGIC ---
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                activeUser = user;
+                document.getElementById('login-modal').classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('user-display-name').innerText = user.displayName;
+                document.getElementById('user-initial').innerText = user.displayName.charAt(0);
+                syncHistory();
+            } else {
+                document.getElementById('login-modal').classList.remove('opacity-0', 'pointer-events-none');
             }
         });
 
-        // FUNGSI CEK KEMIRIPAN (Semantic Check)
-        async function checkBrain(q) {
-            const snap = await get(ref(db, 'brain'));
-            const data = snap.val();
-            if(!data) return null;
-            
-            const words = q.toLowerCase().split(" ");
-            for(let id in data) {
-                let score = 0;
-                words.forEach(w => { if(data[id].topic.toLowerCase().includes(w)) score++; });
-                if(score >= 3) return data[id].content; // Jika 3 kata cocok, ambil dari database
-            }
-            return null;
-        }
+        window.handleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
+        window.handleLogout = () => signOut(auth).then(() => location.reload());
 
-        async function handleSend() {
-            const input = document.getElementById('input-q');
+        // --- UI HELPERS ---
+        window.toggleSidebar = () => {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            const isOpen = sb.classList.contains('translate-x-0');
+            
+            if(isOpen) {
+                sb.classList.replace('translate-x-0', '-translate-x-full');
+                ov.style.display = 'none';
+            } else {
+                sb.classList.replace('-translate-x-full', 'translate-x-0');
+                ov.style.display = 'block';
+            }
+        };
+
+        window.autoResize = (el) => {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+            document.getElementById('send-btn').disabled = !el.value.trim();
+        };
+
+        window.newChat = () => {
+            document.getElementById('message-flow').innerHTML = "";
+            document.getElementById('welcome-screen').classList.remove('hidden');
+            if(window.innerWidth < 768) toggleSidebar();
+        };
+
+        // --- CHAT CORE ---
+        window.processChat = async () => {
+            const input = document.getElementById('user-input');
             const q = input.value.trim();
             if(!q) return;
 
-            document.getElementById('welcome-view').classList.add('hidden');
-            appendMsg('user', q);
+            document.getElementById('welcome-screen').classList.add('hidden');
+            renderBubble('user', q);
             input.value = "";
             input.style.height = 'auto';
+            document.getElementById('send-btn').disabled = true;
 
-            // 1. Cek Database dulu
-            const brainMatch = await checkBrain(q);
-            if(brainMatch) {
-                appendMsg('ai', brainMatch + " <br><span class='text-[10px] opacity-30 italic'>Memori tersimpan</span>");
-                await push(ref(db, `chats/${userNow.uid}`), { q: q, a: brainMatch, t: Date.now() });
-                return;
+            // 1. Cek Brain (Semantic Match)
+            const brainSnap = await get(ref(db, 'brain'));
+            const brainData = brainSnap.val();
+            let matchedResult = null;
+
+            if(brainData) {
+                const words = q.toLowerCase().split(" ");
+                for(let id in brainData) {
+                    let score = 0;
+                    words.forEach(w => { if(brainData[id].topic.toLowerCase().includes(w)) score++; });
+                    if(score >= 3) { matchedResult = brainData[id].content; break; }
+                }
             }
 
-            // 2. Jika tidak ada, panggil API
-            try {
-                const res = await fetch('/api', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ question: q })
-                });
-                const data = await res.json();
-                appendMsg('ai', data.answer);
-                
-                // Simpan ke Riwayat & Brain
-                await push(ref(db, `chats/${userNow.uid}`), { q: q, a: data.answer, t: Date.now() });
-                await push(ref(db, 'brain'), { topic: q, content: data.answer, t: Date.now() });
-            } catch(e) { appendMsg('ai', 'Maaf, terjadi gangguan server.'); }
-        }
+            if(matchedResult) {
+                setTimeout(() => {
+                    renderBubble('ai', matchedResult + `<br><span class="text-[10px] opacity-30 mt-2 block italic">Jawaban diambil dari memori internal Lunan.</span>`);
+                    saveChat(q, matchedResult);
+                }, 500);
+            } else {
+                try {
+                    const res = await fetch('/api', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ question: q })
+                    });
+                    const data = await res.json();
+                    renderBubble('ai', data.answer);
+                    saveChat(q, data.answer);
+                    // Belajar konten baru
+                    await push(ref(db, 'brain'), { topic: q, content: data.answer, t: Date.now() });
+                } catch(e) {
+                    renderBubble('ai', 'Koneksi API terputus. Silakan coba lagi.');
+                }
+            }
+        };
 
-        function appendMsg(role, text) {
-            const box = document.getElementById('chat-box');
-            const align = role === 'user' ? 'justify-end' : 'justify-start';
-            const bg = role === 'user' ? 'bg-[#2f2f2f]' : '';
-            
-            box.innerHTML += `
-                <div class="flex ${align} w-full px-4 mb-8">
-                    <div class="max-w-3xl flex gap-4 ${role === 'user' ? 'flex-row-reverse' : ''}">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${role === 'ai' ? 'bg-green-600' : 'bg-blue-600'} text-xs font-bold uppercase">
-                            ${role === 'ai' ? 'L' : 'U'}
+        function renderBubble(role, text) {
+            const flow = document.getElementById('message-flow');
+            const isAi = role === 'ai';
+            const html = `
+                <div class="w-full py-8 ${isAi ? 'bg-white/[0.02]' : ''}">
+                    <div class="max-w-3xl mx-auto px-4 flex gap-4 md:gap-6">
+                        <div class="w-8 h-8 rounded-md flex items-center justify-center shrink-0 text-white ${isAi ? 'bg-[#10a37f]' : 'bg-blue-600'}">
+                            <i class="fa-solid ${isAi ? 'fa-robot' : 'fa-user'} text-xs"></i>
                         </div>
-                        <div class="space-y-2">
-                            <p class="text-sm font-bold">${role === 'ai' ? 'Lunan AI' : 'Anda'}</p>
-                            <div class="text-sm leading-relaxed whitespace-pre-wrap">${text}</div>
+                        <div class="flex-1 space-y-2 prose prose-invert max-w-none">
+                            <p class="font-bold text-xs uppercase tracking-widest ${isAi ? 'text-[#10a37f]' : 'text-blue-400'}">
+                                ${isAi ? 'Lunan AI' : 'Anda'}
+                            </p>
+                            <div class="text-sm md:text-base leading-relaxed text-gray-200">${text}</div>
                         </div>
                     </div>
-                </div>`;
-            box.scrollTop = box.scrollHeight;
+                </div>
+            `;
+            flow.innerHTML += html;
+            const container = document.getElementById('chat-container');
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
         }
 
-        function loadSidebar() {
-            onValue(query(ref(db, `chats/${userNow.uid}`), limitToLast(20)), s => {
+        async function saveChat(q, a) {
+            await push(ref(db, `chats/${activeUser.uid}`), { q, a, t: Date.now() });
+        }
+
+        function syncHistory() {
+            onValue(query(ref(db, `chats/${activeUser.uid}`), limitToLast(20)), s => {
                 const list = document.getElementById('history-list');
                 list.innerHTML = "";
-                s.forEach(c => {
-                    const d = c.val();
-                    list.innerHTML = `<div class="p-3 rounded-lg hover:bg-white/5 truncate cursor-pointer transition">
-                        <i class="fa-regular fa-message mr-2"></i> ${d.q}
-                    </div>` + list.innerHTML;
+                const items = [];
+                s.forEach(c => { items.push(c.val()); });
+                items.reverse().forEach(d => {
+                    list.innerHTML += `
+                        <div class="p-3 rounded-lg hover:bg-white/5 transition cursor-pointer flex items-center gap-3 truncate text-sm">
+                            <i class="fa-regular fa-message opacity-50"></i>
+                            <span class="truncate">${d.q}</span>
+                        </div>`;
                 });
             });
         }
-
-        function loadChat() {
-            onValue(query(ref(db, `chats/${userNow.uid}`), limitToLast(10)), s => {
-                const box = document.getElementById('chat-box');
-                if(s.exists()) document.getElementById('welcome-view').classList.add('hidden');
-                box.innerHTML = "";
-                s.forEach(c => {
-                    const d = c.val();
-                    appendMsg('user', d.q);
-                    appendMsg('ai', d.a);
-                });
-            });
-        }
-
-        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
-        window.logout = () => signOut(auth).then(() => location.reload());
     </script>
 </body>
 </html>
