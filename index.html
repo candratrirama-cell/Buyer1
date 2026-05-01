@@ -8,106 +8,86 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
         body { font-family: 'Inter', sans-serif; background-color: #212121; color: #ececf1; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* Layout ChatGPT Colors */
-        .sidebar { background-color: #171717; transition: all 0.3s ease; }
-        .main-content { background-color: #212121; }
+        /* Bubble Styles */
+        .bubble { max-width: 85%; padding: 0.8rem 1.2rem; border-radius: 1.2rem; line-height: 1.6; position: relative; }
+        .bubble-user { background-color: #2f2f2f; border-bottom-right-radius: 0.2rem; color: white; }
+        .bubble-ai { background-color: #444654; border-bottom-left-radius: 0.2rem; color: #ececf1; }
+
+        /* Typing Animation */
+        .typing-dot { width: 6px; height: 6px; background: #acacbe; border-radius: 50%; display: inline-block; animation: typing 1.4s infinite ease-in-out; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+
+        /* Sidebar & Layout */
+        .sidebar { background-color: #171717; z-index: 50; }
         .input-container { background-color: #2f2f2f; border: 1px solid rgba(255,255,255,0.1); }
-        
-        /* Bubble Chat Style */
-        .user-row { background-color: transparent; }
-        .ai-row { background-color: transparent; }
-        
-        /* Markdown-ish formatting */
-        .prose code { background: #0d0d0d; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
-        
-        /* Mobile Overlay */
-        #sidebar-overlay { background: rgba(0,0,0,0.5); display: none; }
     </style>
 </head>
 <body class="antialiased overflow-hidden">
 
     <div id="app" class="flex h-screen w-full relative">
         
-        <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 w-72 transform -translate-x-full md:translate-x-0 md:relative md:flex flex-col border-r border-white/10">
+        <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 w-72 transform -translate-x-full md:translate-x-0 md:relative md:flex flex-col border-r border-white/10 transition-transform duration-300">
             <div class="p-3">
-                <button onclick="newChat()" class="flex items-center gap-3 w-full border border-white/20 p-3 rounded-lg hover:bg-white/5 transition text-sm font-medium">
+                <button onclick="location.reload()" class="flex items-center gap-3 w-full border border-white/20 p-3 rounded-lg hover:bg-white/5 transition text-sm">
                     <i class="fa-solid fa-plus"></i> Chat Baru
                 </button>
             </div>
-
-            <div id="history-list" class="flex-1 overflow-y-auto px-3 space-y-1 no-scrollbar mt-2">
-                </div>
-
-            <div class="p-3 border-t border-white/10 space-y-1">
-                <div class="flex items-center gap-3 p-3 rounded-lg text-sm opacity-70">
-                    <div class="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-[10px]" id="user-initial">U</div>
-                    <span id="user-display-name" class="truncate">User</span>
-                </div>
+            <div id="history-list" class="flex-1 overflow-y-auto px-3 space-y-1 no-scrollbar"></div>
+            <div class="p-3 border-t border-white/10">
                 <button onclick="handleLogout()" class="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-red-500/10 text-red-400 transition text-sm">
                     <i class="fa-solid fa-right-from-bracket"></i> Keluar
                 </button>
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col h-full relative overflow-hidden">
-            
+        <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-[#212121]">
             <header class="md:hidden flex items-center justify-between p-4 border-b border-white/10">
                 <button onclick="toggleSidebar()"><i class="fa-solid fa-bars text-xl"></i></button>
-                <span class="font-semibold">Lunan AI</span>
-                <button onclick="newChat()"><i class="fa-solid fa-pen-to-square text-xl"></i></button>
+                <span class="font-bold">Lunan AI</span>
+                <div class="w-6"></div>
             </header>
 
-            <div id="chat-container" class="flex-1 overflow-y-auto no-scrollbar">
-                <div id="welcome-screen" class="h-full flex flex-col items-center justify-center space-y-6 px-6 text-center">
-                    <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center border border-white/10 shadow-xl">
-                        <i class="fa-solid fa-bolt-lightning text-3xl text-blue-500"></i>
+            <div id="chat-container" class="flex-1 overflow-y-auto no-scrollbar pb-40">
+                <div id="welcome-screen" class="h-full flex flex-col items-center justify-center space-y-4 px-6 text-center pt-20">
+                    <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg mb-2">
+                        <i class="fa-solid fa-robot text-xl"></i>
                     </div>
-                    <h2 class="text-3xl font-bold tracking-tight">Lunan AI Intelligence</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-2xl w-full">
-                        <div class="p-4 bg-white/5 border border-white/10 rounded-xl text-xs">"Apa berita terbaru hari ini?"</div>
-                        <div class="p-4 bg-white/5 border border-white/10 rounded-xl text-xs">"Jelaskan konsep kuantum komputer"</div>
-                        <div class="p-4 bg-white/5 border border-white/10 rounded-xl text-xs">"Buatkan kode Python untuk bot"</div>
-                    </div>
+                    <h2 class="text-2xl font-bold">Lunan AI Intelligence</h2>
+                    <p class="text-gray-400 text-sm max-w-sm">Gunakan memori cerdas dan pencarian berita real-time.</p>
                 </div>
                 <div id="message-flow" class="w-full"></div>
-                <div id="anchor" class="h-32"></div>
             </div>
 
             <div class="absolute bottom-0 left-0 w-full p-4 md:p-8 bg-gradient-to-t from-[#212121] via-[#212121] to-transparent">
                 <div class="max-w-3xl mx-auto relative">
-                    <div class="input-container rounded-2xl shadow-2xl transition-all duration-200">
+                    <div class="input-container rounded-2xl shadow-2xl">
                         <div class="flex items-end p-2 md:p-3">
                             <textarea id="user-input" rows="1" 
                                 class="bg-transparent flex-1 p-2 outline-none resize-none text-sm md:text-base max-h-52 no-scrollbar" 
-                                placeholder="Ketik pesan ke Lunan AI..."
-                                oninput="autoResize(this)"></textarea>
+                                placeholder="Ketik pesan..." oninput="autoResize(this)"></textarea>
                             <button id="send-btn" onclick="processChat()" 
-                                class="bg-white text-black w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-200 transition disabled:opacity-20 disabled:cursor-not-allowed">
+                                class="bg-white text-black w-10 h-10 flex items-center justify-center rounded-xl hover:bg-gray-200 transition disabled:opacity-20">
                                 <i class="fa-solid fa-arrow-up"></i>
                             </button>
                         </div>
                     </div>
-                    <p class="text-[10px] text-center text-gray-500 mt-3 tracking-wide uppercase">Powered by Groq & Turboseek Intelligence</p>
                 </div>
             </div>
-        </main>
+        </aside>
 
-        <div id="sidebar-overlay" class="fixed inset-0 z-40" onclick="toggleSidebar()"></div>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
     </div>
 
-    <div id="login-modal" class="fixed inset-0 bg-[#000] z-[100] flex items-center justify-center p-6 transition-opacity duration-500">
-        <div class="max-w-sm w-full text-center space-y-8">
-            <div class="inline-block p-4 bg-blue-600 rounded-3xl shadow-2xl shadow-blue-500/20 mb-4">
-                <i class="fa-solid fa-brain text-5xl text-white"></i>
-            </div>
-            <h1 class="text-5xl font-black italic tracking-tighter">LUNAN AI</h1>
-            <p class="text-gray-400 text-sm">Masuk untuk memulai percakapan cerdas yang didukung memori persisten.</p>
-            <button onclick="handleLogin()" class="w-full bg-white text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] transition transform">
-                <i class="fa-brands fa-google"></i> Lanjutkan dengan Google
+    <div id="login-modal" class="fixed inset-0 bg-black z-[100] flex items-center justify-center p-6">
+        <div class="text-center space-y-6">
+            <h1 class="text-5xl font-black italic text-blue-500">LUNAN AI</h1>
+            <button onclick="handleLogin()" class="bg-white text-black font-bold px-10 py-4 rounded-full flex items-center gap-3">
+                <i class="fa-brands fa-google"></i> Login with Google
             </button>
         </div>
     </div>
@@ -130,35 +110,21 @@
         const db = getDatabase(app);
         let activeUser = null;
 
-        // --- AUTH LOGIC ---
         onAuthStateChanged(auth, user => {
             if(user) {
                 activeUser = user;
-                document.getElementById('login-modal').classList.add('opacity-0', 'pointer-events-none');
-                document.getElementById('user-display-name').innerText = user.displayName;
-                document.getElementById('user-initial').innerText = user.displayName.charAt(0);
+                document.getElementById('login-modal').classList.add('hidden');
                 syncHistory();
-            } else {
-                document.getElementById('login-modal').classList.remove('opacity-0', 'pointer-events-none');
             }
         });
 
         window.handleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
         window.handleLogout = () => signOut(auth).then(() => location.reload());
-
-        // --- UI HELPERS ---
         window.toggleSidebar = () => {
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('sidebar-overlay');
-            const isOpen = sb.classList.contains('translate-x-0');
-            
-            if(isOpen) {
-                sb.classList.replace('translate-x-0', '-translate-x-full');
-                ov.style.display = 'none';
-            } else {
-                sb.classList.replace('-translate-x-full', 'translate-x-0');
-                ov.style.display = 'block';
-            }
+            sb.classList.toggle('-translate-x-full');
+            ov.classList.toggle('hidden');
         };
 
         window.autoResize = (el) => {
@@ -167,13 +133,43 @@
             document.getElementById('send-btn').disabled = !el.value.trim();
         };
 
-        window.newChat = () => {
-            document.getElementById('message-flow').innerHTML = "";
-            document.getElementById('welcome-screen').classList.remove('hidden');
-            if(window.innerWidth < 768) toggleSidebar();
-        };
+        function showTyping() {
+            const flow = document.getElementById('message-flow');
+            const html = `
+                <div id="typing-indicator" class="w-full py-6">
+                    <div class="max-w-3xl mx-auto px-4 flex gap-4">
+                        <div class="w-8 h-8 rounded-md flex items-center justify-center bg-[#10a37f] text-white">L</div>
+                        <div class="bubble bubble-ai flex items-center gap-1 h-10">
+                            <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>`;
+            flow.innerHTML += html;
+            scrollToBottom();
+        }
 
-        // --- CHAT CORE ---
+        function renderBubble(role, text) {
+            const typing = document.getElementById('typing-indicator');
+            if (typing) typing.remove();
+
+            const flow = document.getElementById('message-flow');
+            const isAi = role === 'ai';
+            const html = `
+                <div class="w-full py-6">
+                    <div class="max-w-3xl mx-auto px-4 flex gap-4 ${!isAi ? 'flex-row-reverse' : ''}">
+                        <div class="w-8 h-8 rounded-md flex items-center justify-center shrink-0 text-white ${isAi ? 'bg-[#10a37f]' : 'bg-blue-600'}">
+                            ${isAi ? 'L' : 'U'}
+                        </div>
+                        <div class="bubble ${isAi ? 'bubble-ai' : 'bubble-user shadow-md'}">
+                            <div class="text-[10px] opacity-40 mb-1 font-bold uppercase">${role}</div>
+                            <div class="text-sm md:text-base whitespace-pre-wrap">${text}</div>
+                        </div>
+                    </div>
+                </div>`;
+            flow.innerHTML += html;
+            scrollToBottom();
+        }
+
         window.processChat = async () => {
             const input = document.getElementById('user-input');
             const q = input.value.trim();
@@ -183,84 +179,64 @@
             renderBubble('user', q);
             input.value = "";
             input.style.height = 'auto';
-            document.getElementById('send-btn').disabled = true;
+            
+            showTyping();
 
-            // 1. Cek Brain (Semantic Match)
-            const brainSnap = await get(ref(db, 'brain'));
-            const brainData = brainSnap.val();
-            let matchedResult = null;
+            try {
+                // 1. Cek Brain Database
+                const brainSnap = await get(ref(db, 'brain'));
+                const brainData = brainSnap.val();
+                let matched = null;
 
-            if(brainData) {
-                const words = q.toLowerCase().split(" ");
-                for(let id in brainData) {
-                    let score = 0;
-                    words.forEach(w => { if(brainData[id].topic.toLowerCase().includes(w)) score++; });
-                    if(score >= 3) { matchedResult = brainData[id].content; break; }
+                if(brainData) {
+                    const words = q.toLowerCase().split(" ");
+                    for(let id in brainData) {
+                        let score = 0;
+                        words.forEach(w => { if(brainData[id].topic.toLowerCase().includes(w)) score++; });
+                        if(score >= 3) { matched = brainData[id].content; break; }
+                    }
                 }
-            }
 
-            if(matchedResult) {
-                setTimeout(() => {
-                    renderBubble('ai', matchedResult + `<br><span class="text-[10px] opacity-30 mt-2 block italic">Jawaban diambil dari memori internal Lunan.</span>`);
-                    saveChat(q, matchedResult);
-                }, 500);
-            } else {
-                try {
+                if(matched) {
+                    renderBubble('ai', matched + "\n\n(Diambil dari memori database)");
+                    await push(ref(db, `chats/${activeUser.uid}`), { q, a: matched, t: Date.now() });
+                } else {
+                    // 2. Jika tidak ada di memori, panggil Vercel API
                     const res = await fetch('/api', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ question: q })
                     });
                     const data = await res.json();
-                    renderBubble('ai', data.answer);
-                    saveChat(q, data.answer);
-                    // Belajar konten baru
-                    await push(ref(db, 'brain'), { topic: q, content: data.answer, t: Date.now() });
-                } catch(e) {
-                    renderBubble('ai', 'Koneksi API terputus. Silakan coba lagi.');
+                    
+                    if(data.answer) {
+                        renderBubble('ai', data.answer);
+                        await push(ref(db, `chats/${activeUser.uid}`), { q, a: data.answer, t: Date.now() });
+                        await push(ref(db, 'brain'), { topic: q, content: data.answer, t: Date.now() });
+                    } else {
+                        throw new Error("No answer");
+                    }
                 }
+            } catch(e) {
+                renderBubble('ai', 'Maaf, Lunan gagal merespon. Pastikan API Vercel sudah di-deploy dengan benar.');
+                console.error(e);
             }
         };
 
-        function renderBubble(role, text) {
-            const flow = document.getElementById('message-flow');
-            const isAi = role === 'ai';
-            const html = `
-                <div class="w-full py-8 ${isAi ? 'bg-white/[0.02]' : ''}">
-                    <div class="max-w-3xl mx-auto px-4 flex gap-4 md:gap-6">
-                        <div class="w-8 h-8 rounded-md flex items-center justify-center shrink-0 text-white ${isAi ? 'bg-[#10a37f]' : 'bg-blue-600'}">
-                            <i class="fa-solid ${isAi ? 'fa-robot' : 'fa-user'} text-xs"></i>
-                        </div>
-                        <div class="flex-1 space-y-2 prose prose-invert max-w-none">
-                            <p class="font-bold text-xs uppercase tracking-widest ${isAi ? 'text-[#10a37f]' : 'text-blue-400'}">
-                                ${isAi ? 'Lunan AI' : 'Anda'}
-                            </p>
-                            <div class="text-sm md:text-base leading-relaxed text-gray-200">${text}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            flow.innerHTML += html;
+        function scrollToBottom() {
             const container = document.getElementById('chat-container');
             container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
         }
 
-        async function saveChat(q, a) {
-            await push(ref(db, `chats/${activeUser.uid}`), { q, a, t: Date.now() });
-        }
-
         function syncHistory() {
-            onValue(query(ref(db, `chats/${activeUser.uid}`), limitToLast(20)), s => {
+            onValue(query(ref(db, `chats/${activeUser.uid}`), limitToLast(10)), s => {
                 const list = document.getElementById('history-list');
                 list.innerHTML = "";
-                const items = [];
-                s.forEach(c => { items.push(c.val()); });
-                items.reverse().forEach(d => {
-                    list.innerHTML += `
-                        <div class="p-3 rounded-lg hover:bg-white/5 transition cursor-pointer flex items-center gap-3 truncate text-sm">
-                            <i class="fa-regular fa-message opacity-50"></i>
-                            <span class="truncate">${d.q}</span>
-                        </div>`;
+                s.forEach(c => {
+                    const d = c.val();
+                    list.innerHTML = `<div class="p-3 rounded-lg hover:bg-white/5 truncate text-xs cursor-default">
+                        <i class="fa-regular fa-message mr-2 opacity-40"></i> ${d.q}
+                    </div>` + list.innerHTML;
                 });
             });
         }
