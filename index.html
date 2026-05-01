@@ -3,31 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunan AI</title>
+    <title>Lunan AI - Clean Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white min-h-screen p-4">
-    <div id="app" class="max-w-xl mx-auto flex flex-col h-screen">
+<body class="bg-[#0a0a0a] text-gray-100 font-sans antialiased">
+    <div id="app" class="max-w-2xl mx-auto min-h-screen flex flex-col p-4">
         
-        <div id="login-view" class="flex-1 flex flex-col items-center justify-center">
-            <h1 class="text-5xl font-black text-blue-500 mb-6">LUNAN AI</h1>
-            <button onclick="login()" class="bg-white text-black px-8 py-3 rounded-xl font-bold">Login Google</button>
+        <div id="view-login" class="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+            <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/50">
+                <span class="text-4xl font-black">L</span>
+            </div>
+            <div>
+                <h1 class="text-5xl font-black tracking-tighter mb-2">LUNAN <span class="text-blue-500">AI</span></h1>
+                <p class="text-gray-500 uppercase tracking-widest text-xs">Secure Intelligence Interface</p>
+            </div>
+            <button onclick="login()" class="bg-white text-black font-bold px-8 py-3 rounded-2xl hover:bg-gray-200 transition active:scale-95">
+                Masuk dengan Google
+            </button>
         </div>
 
-        <div id="chat-view" class="hidden flex-1 flex flex-col overflow-hidden">
-            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 py-4"></div>
-            <div class="p-4 bg-gray-900 rounded-2xl flex gap-2 mb-4">
-                <input id="input-q" class="bg-transparent flex-1 outline-none" placeholder="Tanya sesuatu...">
-                <button onclick="askLunan()" id="btn" class="bg-blue-600 px-4 py-2 rounded-lg">Kirim</button>
+        <div id="view-chat" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+            <header class="flex justify-between items-center py-4 border-b border-white/5">
+                <span class="font-bold text-blue-500 tracking-tighter text-xl">LUNAN AI</span>
+                <button onclick="logout()" class="text-[10px] bg-red-500/10 text-red-500 px-3 py-1 rounded-full border border-red-500/20">LOGOUT</button>
+            </header>
+
+            <div id="box-chat" class="flex-1 overflow-y-auto py-6 space-y-4 text-sm no-scrollbar">
+                </div>
+
+            <div class="py-4">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center focus-within:border-blue-500/50 transition">
+                    <input id="msg-input" type="text" class="bg-transparent flex-1 px-4 py-2 outline-none" placeholder="Tanya sesuatu...">
+                    <button id="send-btn" onclick="tanya()" class="bg-blue-600 px-4 py-2 rounded-xl font-bold hover:bg-blue-500 transition">Kirim</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
         import { getDatabase, ref, push, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
+        // CONFIG FIREBASE PUNYA LO
         const firebaseConfig = {
             apiKey: "AIzaSyC3IrREql-1PG1DhZQZklptxITQz_wOHZM",
             authDomain: "lunan-b6bfe.firebaseapp.com",
@@ -39,55 +57,63 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
         const db = getDatabase(app);
-        let userNow = null;
+        let currentUser = null;
 
         onAuthStateChanged(auth, (user) => {
+            const vLogin = document.getElementById('view-login');
+            const vChat = document.getElementById('view-chat');
             if (user) {
-                userNow = user;
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('chat-view').classList.remove('hidden');
+                currentUser = user;
+                vLogin.classList.add('hidden');
+                vChat.classList.remove('hidden');
                 loadHistory(user.uid);
+            } else {
+                vLogin.classList.remove('hidden');
+                vChat.classList.add('hidden');
             }
         });
 
         function loadHistory(uid) {
-            onValue(query(ref(db, `chats/${uid}`), limitToLast(15)), (snap) => {
-                const box = document.getElementById('chat-box');
+            onValue(query(ref(db, `chats/${uid}`), limitToLast(20)), (s) => {
+                const box = document.getElementById('box-chat');
                 box.innerHTML = "";
-                snap.forEach(c => {
+                s.forEach(c => {
                     const d = c.val();
-                    box.innerHTML += `<div class="text-right text-blue-400"><b>Anda:</b> ${d.q}</div>`;
-                    box.innerHTML += `<div class="bg-gray-800 p-3 rounded-lg mb-2"><b>Lunan:</b> ${d.a}</div>`;
+                    box.innerHTML += `<div class="text-right"><span class="bg-blue-600 px-4 py-2 rounded-2xl rounded-tr-none inline-block max-w-[80%]">${d.q}</span></div>`;
+                    box.innerHTML += `<div class="text-left"><span class="bg-white/5 border border-white/10 px-4 py-2 rounded-2xl rounded-tl-none inline-block max-w-[90%]">${d.a}</span></div>`;
                 });
                 box.scrollTop = box.scrollHeight;
             });
         }
 
         window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
+        window.logout = () => signOut(auth);
 
-        window.askLunan = async () => {
-            const q = document.getElementById('input-q').value;
+        window.tanya = async () => {
+            const input = document.getElementById('msg-input');
+            const btn = document.getElementById('send-btn');
+            const q = input.value;
             if(!q) return;
 
-            // 1. Dapatkan berita (bisa pakai API publik atau lewati jika hanya chat)
-            const contextText = "Berita terbaru sedang dimuat..."; 
+            input.disabled = true; btn.disabled = true;
+            
+            try {
+                const res = await fetch('/api', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ question: q })
+                });
+                const data = await res.json();
+                
+                // Simpan langsung ke Firebase via Client
+                await push(ref(db, `chats/${currentUser.uid}`), {
+                    q: q,
+                    a: data.answer,
+                    t: Date.now()
+                });
+            } catch (e) { alert("Gagal koneksi API."); }
 
-            // 2. Panggil Vercel API (Groq)
-            const res = await fetch('/api', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: q, context: contextText })
-            });
-            const data = await res.json();
-
-            // 3. Simpan ke Database (Langsung dari Frontend)
-            await push(ref(db, `chats/${userNow.uid}`), {
-                q: q,
-                a: data.answer,
-                t: Date.now()
-            });
-
-            document.getElementById('input-q').value = "";
+            input.value = ""; input.disabled = false; btn.disabled = false;
         };
     </script>
 </body>
