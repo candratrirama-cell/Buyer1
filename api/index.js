@@ -1,73 +1,81 @@
-// api/index.js
 const axios = require('axios');
+const admin = require('firebase-admin');
 
-// Fungsi utama dari request kamu
-async function turboseekLogic(question) {
-    try {
-        if (!question) throw new Error('Question is required.');
-        
-        const inst = axios.create({
-            baseURL: 'https://www.turboseek.io/api',
-            headers: {
-                origin: 'https://www.turboseek.io',
-                referer: 'https://www.turboseek.io/',
-                'user-agent': 'Mozilla/5.0 (Linux; Android 15; SM-F958 Build/AP3A.240905.015) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.86 Mobile Safari/537.36'
-            }
-        });
-        
-        // 1. Get Sources
-        const { data: sources } = await inst.post('/getSources', {
-            question: question
-        });
-        
-        // 2. Get Similar Questions
-        const { data: similarQuestions } = await inst.post('/getSimilarQuestions', {
-            question: question,
-            sources: sources
-        });
-        
-        // 3. Get Answer
-        const { data: answer } = await inst.post('/getAnswer', {
-            question: question,
-            sources: sources
-        });
-        
-        // Cleaning answer logic as provided
-        const cleanAnswer = answer.match(/<p>(.*?)<\/p>/gs)?.map(match => {
-            return match.replace(/<\/?p>/g, '').replace(/<\/?strong>/g, '').replace(/<\/?em>/g, '').replace(/<\/?b>/g, '').replace(/<\/?i>/g, '').replace(/<\/?u>/g, '').replace(/<\/?[^>]+(>|$)/g, '').trim();
-        }).join('\n\n') || answer.replace(/<\/?[^>]+(>|$)/g, '').trim();
-        
-        return {
-            answer: cleanAnswer,
-            sources: sources.map(s => s.url), // Mengambil URL saja
-            similarQuestions
-        };
-    } catch (error) {
-        throw error;
-    }
+// Inisialisasi Firebase Admin dengan Service Account (Environment Variables)
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
+        databaseURL: process.env.FIREBASE_RTDB_URL
+    });
 }
 
-// Vercel Serverless Handler
+const db = admin.database();
+
 module.exports = async (req, res) => {
-    // Handle CORS
-    res.setHeader('Access-Control-Allow-Credentials', true);
+    // Pengaturan CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
-    
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    const { question } = req.query || req.body;
+    if (req.method === 'OPTIONS') return res.status(200).end();
 
-    if (!question) {
-        return res.status(400).json({ error: 'Please provide a question' });
-    }
+    const { question, uid } = req.body;
+    if (!uid) return res.status(401).json({ error: "Unauthorized" });
 
     try {
-        const result = await turboseekLogic(question);
-        return res.status(200).json(result);
+        let newsInfo = "";
+
+        // 1. FITUR NEWS: Cari berita melalui Turboseek
+        try {
+            const searchApi = axios.create({ baseURL: 'https://www.turboseek.io/api', timeout: 6000 });
+            const { data: sources } = await searchApi.post('/getSources', { question });
+            const { data: answer } = await searchApi.post('/getAnswer', { question, sources });
+            
+            newsInfo = answer.replace(/<\/?[^>]+(>|$)/g, '').trim();
+
+            // 2. FITUR LEARNING: Simpan berita ke database agar AI bisa belajar jika limit
+            await db.ref('news_learning').push({
+                topic: question,
+                content: newsInfo,
+                timestamp: admin.database.ServerValue.TIMESTAMP
+            });
+        } catch (searchError) {
+            // Fallback: Ambil dari database "pengetahuan" internal
+            const memorySnap = await db.ref('news_learning').limitToLast(3).once('value');
+            if (memorySnap.exists()) {
+                newsInfo = Object.values(memorySnap.val()).map(m => m.content).join("\n");
+            } else {
+                newsInfo = "Gagal mengambil berita terbaru.";
+            }
+        }
+
+        // 3. FITUR GROQ: Kirim ke Groq Console
+        const groqResponse = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+            messages: [
+                { role: "system", content: `Anda adalah Lunan AI. Gunakan berita ini sebagai referensi: ${newsInfo}` },
+                { role: "user", content: question }
+            ],
+            model: "llama-3.3-70b-versatile",
+        }, {
+            headers: { 
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                'Content-Type': 'application/json' 
+            }
+        });
+
+        const finalAIResult = groqResponse.data.choices[0].message.content;
+
+        // 4. FITUR RIWAYAT: Simpan riwayat chat user secara permanen
+        await db.ref(`chats/${uid}`).push({
+            question: question,
+            answer: finalAIResult,
+            timestamp: admin.database.ServerValue.TIMESTAMP
+        });
+
+        return res.status(200).json({ answer: finalAIResult });
+
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        console.error(error);
+        return res.status(500).json({ error: "Terjadi kesalahan pada sistem Lunan." });
     }
 };
