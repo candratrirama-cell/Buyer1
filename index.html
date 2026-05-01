@@ -3,49 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunan AI - Clean Interface</title>
+    <title>Lunan AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { background-color: #212121; color: #ececf1; }
+        .sidebar { background-color: #171717; }
+        .chat-area { background-color: #212121; }
+        .input-box { background-color: #2f2f2f; border: 1px solid rgba(255,255,255,0.1); }
+        pre { background: #0d0d0d; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.85rem; }
+    </style>
 </head>
-<body class="bg-[#0a0a0a] text-gray-100 font-sans antialiased">
-    <div id="app" class="max-w-2xl mx-auto min-h-screen flex flex-col p-4">
+<body class="font-sans antialiased">
+    <div id="app" class="flex h-screen w-full">
         
-        <div id="view-login" class="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-            <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/50">
-                <span class="text-4xl font-black">L</span>
-            </div>
-            <div>
-                <h1 class="text-5xl font-black tracking-tighter mb-2">LUNAN <span class="text-blue-500">AI</span></h1>
-                <p class="text-gray-500 uppercase tracking-widest text-xs">Secure Intelligence Interface</p>
-            </div>
-            <button onclick="login()" class="bg-white text-black font-bold px-8 py-3 rounded-2xl hover:bg-gray-200 transition active:scale-95">
-                Masuk dengan Google
+        <aside id="sidebar" class="sidebar w-64 hidden md:flex flex-col border-r border-white/10 p-2">
+            <button onclick="window.location.reload()" class="flex items-center gap-3 border border-white/20 p-3 rounded-lg hover:bg-white/5 transition mb-4">
+                <i class="fa-solid fa-plus text-xs"></i> <span class="text-sm">Chat Baru</span>
             </button>
-        </div>
+            <div id="history-list" class="flex-1 overflow-y-auto space-y-1 no-scrollbar text-xs">
+                </div>
+            <div class="border-t border-white/10 p-2 mt-auto">
+                <button onclick="logout()" class="flex items-center gap-3 p-3 w-full rounded-lg hover:bg-white/5 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Keluar</span>
+                </button>
+            </div>
+        </aside>
 
-        <div id="view-chat" class="hidden flex-1 flex flex-col h-full overflow-hidden">
-            <header class="flex justify-between items-center py-4 border-b border-white/5">
-                <span class="font-bold text-blue-500 tracking-tighter text-xl">LUNAN AI</span>
-                <button onclick="logout()" class="text-[10px] bg-red-500/10 text-red-500 px-3 py-1 rounded-full border border-red-500/20">LOGOUT</button>
+        <main class="flex-1 flex flex-col relative h-full overflow-hidden">
+            
+            <header class="md:hidden flex items-center justify-between p-4 border-b border-white/10">
+                <i class="fa-solid fa-bars cursor-pointer"></i>
+                <span class="font-bold">Lunan AI</span>
+                <i class="fa-solid fa-plus"></i>
             </header>
 
-            <div id="box-chat" class="flex-1 overflow-y-auto py-6 space-y-4 text-sm no-scrollbar">
-                </div>
-
-            <div class="py-4">
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center focus-within:border-blue-500/50 transition">
-                    <input id="msg-input" type="text" class="bg-transparent flex-1 px-4 py-2 outline-none" placeholder="Tanya sesuatu...">
-                    <button id="send-btn" onclick="tanya()" class="bg-blue-600 px-4 py-2 rounded-xl font-bold hover:bg-blue-500 transition">Kirim</button>
+            <div id="chat-box" class="flex-1 overflow-y-auto pt-10 pb-32 no-scrollbar">
+                <div id="welcome-view" class="h-full flex flex-col items-center justify-center space-y-4 opacity-50">
+                    <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+                        <i class="fa-solid fa-bolt text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold">Lunan AI</h2>
+                    <p class="text-sm">Bagaimana saya bisa membantu Anda hari ini?</p>
                 </div>
             </div>
+
+            <div class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-[#212121] via-[#212121] to-transparent">
+                <div class="max-w-3xl mx-auto">
+                    <div class="input-box rounded-2xl p-2 shadow-2xl flex items-end">
+                        <textarea id="input-q" rows="1" class="bg-transparent flex-1 p-3 outline-none resize-none text-sm no-scrollbar" placeholder="Ketik pesan..." oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea>
+                        <button id="send-btn" onclick="handleSend()" class="bg-white text-black p-2 rounded-xl mb-1 mr-1 disabled:opacity-30">
+                            <i class="fa-solid fa-arrow-up"></i>
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-center text-gray-500 mt-2">Lunan AI dapat melakukan kesalahan. Pertimbangkan untuk memeriksa informasi penting.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="login-modal" class="fixed inset-0 bg-black flex items-center justify-center z-50">
+        <div class="text-center space-y-6">
+            <h1 class="text-5xl font-black italic tracking-tighter text-blue-500">LUNAN AI</h1>
+            <button onclick="login()" class="bg-white text-black font-bold px-10 py-4 rounded-full hover:scale-105 transition">Login dengan Google</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getDatabase, ref, push, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, query, limitToLast, get } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        // CONFIG FIREBASE PUNYA LO
         const firebaseConfig = {
             apiKey: "AIzaSyC3IrREql-1PG1DhZQZklptxITQz_wOHZM",
             authDomain: "lunan-b6bfe.firebaseapp.com",
@@ -57,46 +86,51 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
         const db = getDatabase(app);
-        let currentUser = null;
+        let userNow = null;
 
-        onAuthStateChanged(auth, (user) => {
-            const vLogin = document.getElementById('view-login');
-            const vChat = document.getElementById('view-chat');
-            if (user) {
-                currentUser = user;
-                vLogin.classList.add('hidden');
-                vChat.classList.remove('hidden');
-                loadHistory(user.uid);
-            } else {
-                vLogin.classList.remove('hidden');
-                vChat.classList.add('hidden');
+        onAuthStateChanged(auth, u => {
+            if(u) {
+                userNow = u;
+                document.getElementById('login-modal').classList.add('hidden');
+                loadChat();
+                loadSidebar();
             }
         });
 
-        function loadHistory(uid) {
-            onValue(query(ref(db, `chats/${uid}`), limitToLast(20)), (s) => {
-                const box = document.getElementById('box-chat');
-                box.innerHTML = "";
-                s.forEach(c => {
-                    const d = c.val();
-                    box.innerHTML += `<div class="text-right"><span class="bg-blue-600 px-4 py-2 rounded-2xl rounded-tr-none inline-block max-w-[80%]">${d.q}</span></div>`;
-                    box.innerHTML += `<div class="text-left"><span class="bg-white/5 border border-white/10 px-4 py-2 rounded-2xl rounded-tl-none inline-block max-w-[90%]">${d.a}</span></div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
+        // FUNGSI CEK KEMIRIPAN (Semantic Check)
+        async function checkBrain(q) {
+            const snap = await get(ref(db, 'brain'));
+            const data = snap.val();
+            if(!data) return null;
+            
+            const words = q.toLowerCase().split(" ");
+            for(let id in data) {
+                let score = 0;
+                words.forEach(w => { if(data[id].topic.toLowerCase().includes(w)) score++; });
+                if(score >= 3) return data[id].content; // Jika 3 kata cocok, ambil dari database
+            }
+            return null;
         }
 
-        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
-        window.logout = () => signOut(auth);
-
-        window.tanya = async () => {
-            const input = document.getElementById('msg-input');
-            const btn = document.getElementById('send-btn');
-            const q = input.value;
+        async function handleSend() {
+            const input = document.getElementById('input-q');
+            const q = input.value.trim();
             if(!q) return;
 
-            input.disabled = true; btn.disabled = true;
-            
+            document.getElementById('welcome-view').classList.add('hidden');
+            appendMsg('user', q);
+            input.value = "";
+            input.style.height = 'auto';
+
+            // 1. Cek Database dulu
+            const brainMatch = await checkBrain(q);
+            if(brainMatch) {
+                appendMsg('ai', brainMatch + " <br><span class='text-[10px] opacity-30 italic'>Memori tersimpan</span>");
+                await push(ref(db, `chats/${userNow.uid}`), { q: q, a: brainMatch, t: Date.now() });
+                return;
+            }
+
+            // 2. Jika tidak ada, panggil API
             try {
                 const res = await fetch('/api', {
                     method: 'POST',
@@ -104,17 +138,62 @@
                     body: JSON.stringify({ question: q })
                 });
                 const data = await res.json();
+                appendMsg('ai', data.answer);
                 
-                // Simpan langsung ke Firebase via Client
-                await push(ref(db, `chats/${currentUser.uid}`), {
-                    q: q,
-                    a: data.answer,
-                    t: Date.now()
-                });
-            } catch (e) { alert("Gagal koneksi API."); }
+                // Simpan ke Riwayat & Brain
+                await push(ref(db, `chats/${userNow.uid}`), { q: q, a: data.answer, t: Date.now() });
+                await push(ref(db, 'brain'), { topic: q, content: data.answer, t: Date.now() });
+            } catch(e) { appendMsg('ai', 'Maaf, terjadi gangguan server.'); }
+        }
 
-            input.value = ""; input.disabled = false; btn.disabled = false;
-        };
+        function appendMsg(role, text) {
+            const box = document.getElementById('chat-box');
+            const align = role === 'user' ? 'justify-end' : 'justify-start';
+            const bg = role === 'user' ? 'bg-[#2f2f2f]' : '';
+            
+            box.innerHTML += `
+                <div class="flex ${align} w-full px-4 mb-8">
+                    <div class="max-w-3xl flex gap-4 ${role === 'user' ? 'flex-row-reverse' : ''}">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${role === 'ai' ? 'bg-green-600' : 'bg-blue-600'} text-xs font-bold uppercase">
+                            ${role === 'ai' ? 'L' : 'U'}
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-sm font-bold">${role === 'ai' ? 'Lunan AI' : 'Anda'}</p>
+                            <div class="text-sm leading-relaxed whitespace-pre-wrap">${text}</div>
+                        </div>
+                    </div>
+                </div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function loadSidebar() {
+            onValue(query(ref(db, `chats/${userNow.uid}`), limitToLast(20)), s => {
+                const list = document.getElementById('history-list');
+                list.innerHTML = "";
+                s.forEach(c => {
+                    const d = c.val();
+                    list.innerHTML = `<div class="p-3 rounded-lg hover:bg-white/5 truncate cursor-pointer transition">
+                        <i class="fa-regular fa-message mr-2"></i> ${d.q}
+                    </div>` + list.innerHTML;
+                });
+            });
+        }
+
+        function loadChat() {
+            onValue(query(ref(db, `chats/${userNow.uid}`), limitToLast(10)), s => {
+                const box = document.getElementById('chat-box');
+                if(s.exists()) document.getElementById('welcome-view').classList.add('hidden');
+                box.innerHTML = "";
+                s.forEach(c => {
+                    const d = c.val();
+                    appendMsg('user', d.q);
+                    appendMsg('ai', d.a);
+                });
+            });
+        }
+
+        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
+        window.logout = () => signOut(auth).then(() => location.reload());
     </script>
 </body>
 </html>
