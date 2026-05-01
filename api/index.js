@@ -1,18 +1,15 @@
 const axios = require('axios');
 const admin = require('firebase-admin');
 
-// Inisialisasi Firebase Admin dengan Service Account (Environment Variables)
 if (!admin.apps.length) {
     admin.initializeApp({
         credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
         databaseURL: process.env.FIREBASE_RTDB_URL
     });
 }
-
 const db = admin.database();
 
 module.exports = async (req, res) => {
-    // Pengaturan CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -23,59 +20,39 @@ module.exports = async (req, res) => {
     if (!uid) return res.status(401).json({ error: "Unauthorized" });
 
     try {
-        let newsInfo = "";
-
-        // 1. FITUR NEWS: Cari berita melalui Turboseek
+        let newsData = "";
         try {
-            const searchApi = axios.create({ baseURL: 'https://www.turboseek.io/api', timeout: 6000 });
-            const { data: sources } = await searchApi.post('/getSources', { question });
-            const { data: answer } = await searchApi.post('/getAnswer', { question, sources });
-            
-            newsInfo = answer.replace(/<\/?[^>]+(>|$)/g, '').trim();
+            // 1. Ambil Berita (Turboseek)
+            const search = axios.create({ baseURL: 'https://www.turboseek.io/api' });
+            const { data: sources } = await search.post('/getSources', { question });
+            const { data: answer } = await search.post('/getAnswer', { question, sources });
+            newsData = answer.replace(/<\/?[^>]+(>|$)/g, '').trim();
 
-            // 2. FITUR LEARNING: Simpan berita ke database agar AI bisa belajar jika limit
-            await db.ref('news_learning').push({
-                topic: question,
-                content: newsInfo,
-                timestamp: admin.database.ServerValue.TIMESTAMP
-            });
-        } catch (searchError) {
-            // Fallback: Ambil dari database "pengetahuan" internal
-            const memorySnap = await db.ref('news_learning').limitToLast(3).once('value');
-            if (memorySnap.exists()) {
-                newsInfo = Object.values(memorySnap.val()).map(m => m.content).join("\n");
-            } else {
-                newsInfo = "Gagal mengambil berita terbaru.";
-            }
+            // 2. Simpan untuk Learning Mode
+            await db.ref('news_learning').push({ topic: question, content: newsData, t: Date.now() });
+        } catch (e) {
+            // Fallback: Ambil data lama jika API Limit
+            const snap = await db.ref('news_learning').limitToLast(2).once('value');
+            newsData = snap.exists() ? Object.values(snap.val()).map(v => v.content).join(" ") : "No context.";
         }
 
-        // 3. FITUR GROQ: Kirim ke Groq Console
-        const groqResponse = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+        // 3. Groq AI Processing
+        const groq = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
             messages: [
-                { role: "system", content: `Anda adalah Lunan AI. Gunakan berita ini sebagai referensi: ${newsInfo}` },
+                { role: "system", content: `Nama Anda Lunan AI. Gunakan info ini: ${newsData}` },
                 { role: "user", content: question }
             ],
-            model: "llama-3.3-70b-versatile",
-        }, {
-            headers: { 
-                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-                'Content-Type': 'application/json' 
-            }
-        });
+            model: "llama-3.3-70b-versatile"
+        }, { headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` } });
 
-        const finalAIResult = groqResponse.data.choices[0].message.content;
+        const aiResult = groq.data.choices[0].message.content;
 
-        // 4. FITUR RIWAYAT: Simpan riwayat chat user secara permanen
-        await db.ref(`chats/${uid}`).push({
-            question: question,
-            answer: finalAIResult,
-            timestamp: admin.database.ServerValue.TIMESTAMP
-        });
+        // 4. Simpan Riwayat Chat & Login (tanda aktivitas)
+        await db.ref(`chats/${uid}`).push({ q: question, a: aiResult, t: Date.now() });
+        await db.ref(`users/${uid}/last_active`).set(Date.now());
 
-        return res.status(200).json({ answer: finalAIResult });
-
+        res.status(200).json({ answer: aiResult });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Terjadi kesalahan pada sistem Lunan." });
+        res.status(500).json({ error: error.message });
     }
 };
