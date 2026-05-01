@@ -3,51 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunan AI - News Intelligence</title>
+    <title>Lunan AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
-        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(10px); }
+        .chat-bg { background: radial-gradient(circle at top right, #1e1b4b, #000); }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-black text-gray-100 font-sans">
-    <div id="app" class="max-w-2xl mx-auto min-h-screen flex flex-col p-4">
+<body class="bg-black text-white chat-bg min-h-screen">
+    <div id="app" class="max-w-2xl mx-auto p-4 flex flex-col min-h-screen">
         
-        <div id="login-view" class="flex-1 flex flex-col items-center justify-center text-center">
-            <div class="mb-8 p-6 rounded-full bg-blue-600/20 animate-pulse">
-                <svg class="w-20 h-20 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-            </div>
-            <h1 class="text-6xl font-black tracking-tighter text-blue-500 mb-2">LUNAN AI</h1>
-            <p class="text-gray-400 text-lg mb-10">Kecerdasan Buatan dengan Memori Berita Real-time</p>
-            <button onclick="loginGoogle()" class="flex items-center gap-3 bg-white text-black px-10 py-4 rounded-2xl font-bold hover:scale-105 transition-transform shadow-lg shadow-blue-500/20">
-                <img src="https://www.google.com/favicon.ico" class="w-5"> Masuk dengan Google
+        <div id="login-screen" class="flex-1 flex flex-col items-center justify-center text-center">
+            <h1 class="text-7xl font-black text-blue-500 mb-4 tracking-tighter">LUNAN</h1>
+            <p class="text-gray-400 mb-10 text-lg">AI Terintegrasi Berita & Database Realtime</p>
+            <button onclick="login()" class="bg-white text-black px-10 py-4 rounded-2xl font-bold hover:scale-105 transition shadow-xl shadow-blue-500/20">
+                Masuk dengan Google
             </button>
         </div>
 
-        <div id="chat-view" class="hidden flex-1 flex flex-col h-full overflow-hidden">
-            <header class="flex justify-between items-center py-4 border-b border-gray-800">
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
-                    <span class="font-bold tracking-widest text-blue-400">LUNAN AI ONLINE</span>
+        <div id="chat-screen" class="hidden flex-1 flex flex-col h-full overflow-hidden">
+            <header class="flex justify-between items-center py-6 border-b border-white/10">
+                <div>
+                    <h2 class="text-xl font-bold text-blue-400">Lunan Interface</h2>
+                    <p id="user-email" class="text-[10px] text-gray-500"></p>
                 </div>
-                <button onclick="logout()" class="text-xs font-bold text-red-500 hover:text-red-400">KELUAR</button>
+                <button onclick="logout()" class="text-red-500 text-xs font-bold border border-red-500/30 px-3 py-1 rounded-lg">LOGOUT</button>
             </header>
 
-            <div id="chat-box" class="flex-1 overflow-y-auto space-y-6 py-6 scroll-smooth"></div>
+            <div id="chat-container" class="flex-1 overflow-y-auto py-6 space-y-6"></div>
 
-            <div class="pb-4 pt-2">
-                <div class="glass border border-gray-700 rounded-3xl p-2 flex items-center shadow-2xl">
-                    <input id="user-msg" type="text" class="bg-transparent flex-1 px-4 py-3 outline-none text-sm" placeholder="Tanyakan berita atau informasi terbaru...">
-                    <button id="send-btn" onclick="askLunan()" class="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-2xl transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                </div>
-                <p class="text-[10px] text-center text-gray-600 mt-3 uppercase tracking-widest">Lunan AI dapat mempelajari riwayat chat & berita</p>
+            <div class="glass p-3 rounded-3xl border border-white/10 flex gap-2 mb-4">
+                <input id="input-msg" class="bg-transparent flex-1 px-4 outline-none text-sm" placeholder="Tanya Lunan AI...">
+                <button onclick="send()" id="btn-send" class="bg-blue-600 p-3 rounded-2xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7-7 7M5 12h14"></path></svg>
+                </button>
             </div>
         </div>
     </div>
@@ -57,89 +46,60 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
         import { getDatabase, ref, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        // GANTI DENGAN KONFIGURASI FIREBASE ANDA
+        // GUNAKAN CONFIG ANDA SENDIRI
         const firebaseConfig = {
-            apiKey: "AIzaSy...", 
-            authDomain: "project-anda.firebaseapp.com",
-            databaseURL: "https://project-anda.firebaseio.com",
-            projectId: "project-anda",
-            appId: "1:..."
+            apiKey: "AIzaSyC3IrREql-1PG1DhZQZklptxITQz_wOHZM",
+            authDomain: "lunan-b6bfe.firebaseapp.com",
+            databaseURL: "https://lunan-b6bfe-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "lunan-b6bfe",
+            appId: "1:705568398185:web:b4cc60ac49a5e718277bf8"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
-        const db = getDatabase(app);
-        let userNow = null;
+        const rtdb = getDatabase(app);
+        let user = null;
 
-        // Monitor Status Auth
-        onAuthStateChanged(auth, (user) => {
-            const loginUI = document.getElementById('login-view');
-            const chatUI = document.getElementById('chat-view');
-            if (user) {
-                userNow = user;
-                loginUI.classList.add('hidden');
-                chatUI.classList.remove('hidden');
-                syncRealtimeChats(user.uid);
+        onAuthStateChanged(auth, (u) => {
+            if (u) {
+                user = u;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('chat-screen').classList.remove('hidden');
+                document.getElementById('user-email').innerText = u.email;
+                loadHistory(u.uid);
             } else {
-                loginUI.classList.remove('hidden');
-                chatUI.classList.add('hidden');
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('chat-screen').classList.add('hidden');
             }
         });
 
-        // Sinkronisasi Chat Realtime dari RTDB
-        function syncRealtimeChats(uid) {
-            const chatRef = query(ref(db, `chats/${uid}`), limitToLast(20));
-            onValue(chatRef, (snap) => {
-                const box = document.getElementById('chat-box');
+        function loadHistory(uid) {
+            onValue(query(ref(rtdb, `chats/${uid}`), limitToLast(20)), (s) => {
+                const box = document.getElementById('chat-container');
                 box.innerHTML = "";
-                if(snap.exists()) {
-                    snap.forEach((child) => {
-                        const m = child.val();
-                        box.innerHTML += `
-                            <div class="flex flex-col items-end animate-fadeIn">
-                                <div class="bg-blue-600 text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] text-sm font-medium">
-                                    ${m.question}
-                                </div>
-                            </div>
-                            <div class="flex flex-col items-start">
-                                <div class="bg-gray-900 border border-gray-800 text-gray-200 px-4 py-3 rounded-2xl rounded-tl-none max-w-[90%] text-sm leading-relaxed">
-                                    <span class="text-blue-400 font-bold block mb-1 text-[10px] uppercase">Lunan AI</span>
-                                    ${m.answer.replace(/\n/g, '<br>')}
-                                </div>
-                            </div>`;
-                    });
-                }
+                s.forEach(child => {
+                    const data = child.val();
+                    box.innerHTML += `<div class="text-right"><span class="bg-blue-600/20 text-blue-300 px-4 py-2 rounded-2xl rounded-tr-none inline-block text-sm">${data.q}</span></div>`;
+                    box.innerHTML += `<div class="text-left"><span class="bg-white/5 border border-white/10 px-4 py-3 rounded-2xl rounded-tl-none inline-block text-sm leading-relaxed">${data.a}</span></div>`;
+                });
                 box.scrollTop = box.scrollHeight;
             });
         }
 
-        window.loginGoogle = () => signInWithPopup(auth, new GoogleAuthProvider());
+        window.login = () => signInWithPopup(auth, new GoogleAuthProvider());
         window.logout = () => signOut(auth);
 
-        window.askLunan = async () => {
-            const input = document.getElementById('user-msg');
-            const btn = document.getElementById('send-btn');
-            const q = input.value;
-            if(!q || q.trim() === "") return;
-
-            input.value = "Sedang berpikir...";
-            input.disabled = true;
-            btn.disabled = true;
-
-            try {
-                await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: q, uid: userNow.uid })
-                });
-            } catch (e) {
-                alert("Gagal mengirim pesan.");
-            } finally {
-                input.value = "";
-                input.disabled = false;
-                btn.disabled = false;
-                input.focus();
-            }
+        window.send = async () => {
+            const msg = document.getElementById('input-msg').value;
+            if(!msg) return;
+            document.getElementById('btn-send').disabled = true;
+            await fetch('/api', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ question: msg, uid: user.uid })
+            });
+            document.getElementById('input-msg').value = "";
+            document.getElementById('btn-send').disabled = false;
         };
     </script>
 </body>
