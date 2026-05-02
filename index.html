@@ -63,13 +63,6 @@
                 
                 <div id="history-list" class="flex-1 overflow-y-auto px-3 space-y-1 no-scrollbar text-xs"></div>
 
-                <div class="p-4 border-t border-white/10">
-                    <button onclick="openApiModal()" class="w-full p-3 rounded-xl bg-blue-500/10 text-blue-400 text-[11px] font-bold uppercase tracking-wider hover:bg-blue-500/20 transition-all text-left flex items-center justify-between">
-                        <span><i class="fa-solid fa-key mr-2"></i> API Key & Docs</span>
-                        <span id="api-limit-badge" class="bg-blue-500 text-white px-2 py-0.5 rounded-full text-[9px]">100</span>
-                    </button>
-                </div>
-
                 <div class="p-4 border-t border-white/10 space-y-3 bg-black/20">
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg" id="u-ico">?</div>
@@ -158,63 +151,10 @@
         </div>
     </div>
 
-    <!-- API Modal -->
-    <div id="api-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] hidden items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-white/10 w-full max-w-2xl rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
-                <h3 class="font-bold text-lg"><i class="fa-solid fa-code text-blue-500 mr-2"></i> API Documentation</h3>
-                <button onclick="closeApiModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="p-6 overflow-y-auto custom-scroll space-y-6">
-                <div class="space-y-3">
-                    <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Kunci API Anda</label>
-                    <div class="flex gap-2">
-                        <input id="api-key-display" type="text" readonly class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono text-emerald-400" value="rzo_xxxxxxxxxxxxxxx">
-                        <button onclick="regenerateApiKey()" class="bg-blue-600 hover:bg-blue-500 px-4 rounded-xl text-xs font-bold transition">Regenerate</button>
-                    </div>
-                    <p class="text-[10px] text-gray-500">Limit: <span id="api-limit-text" class="text-white">100/100</span> request tersedia.</p>
-                </div>
-
-                <div class="space-y-4 text-sm">
-                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5">
-                        <h4 class="font-bold text-blue-400 mb-2">Endpoint</h4>
-                        <code class="text-xs bg-black/40 p-2 rounded block">POST https://lunan-ai.vercel.app/api</code>
-                    </div>
-
-                    <div class="space-y-2">
-                        <h4 class="font-bold">Headers</h4>
-                        <table class="w-full text-left text-xs border-collapse">
-                            <tr class="border-b border-white/5">
-                                <th class="py-2 text-gray-400">Key</th>
-                                <th class="py-2 text-gray-400">Value</th>
-                            </tr>
-                            <tr>
-                                <td class="py-2 font-mono text-blue-300">Content-Type</td>
-                                <td class="py-2">application/json</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 font-mono text-blue-300">x-api-key</td>
-                                <td class="py-2 text-emerald-400">rzo_... atau rzn_...</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <div class="space-y-2">
-                        <h4 class="font-bold">Request Body</h4>
-                        <pre class="text-[10px] bg-black/40 p-3 rounded-xl text-gray-300">{
-  "question": "Apa itu AI?",
-  "userId": "optional_id"
-}</pre>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-        import { getDatabase, ref, push, onValue, query, limitToLast, get, orderByChild, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, query, limitToLast, get, orderByChild } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyC3IrREql-1PG1DhZQZklptxITQz_wOHZM",
@@ -275,7 +215,6 @@
                 document.getElementById('u-name').innerText = user.displayName || user.email.split('@')[0];
                 document.getElementById('u-ico').innerText = (user.displayName ? user.displayName.charAt(0) : user.email.charAt(0)).toUpperCase();
                 syncHistory();
-                loadApiData();
             } else {
                 document.getElementById('app-wrapper').classList.add('hidden');
                 document.getElementById('login-modal').classList.remove('hidden');
@@ -500,60 +439,6 @@
         function scrollToBottom() {
             const container = document.getElementById('chat-container');
             if(container) setTimeout(() => container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' }), 50);
-        }
-        
-        // API Management Functions
-        window.openApiModal = async () => {
-            document.getElementById('api-modal').classList.remove('hidden');
-            document.getElementById('api-modal').classList.add('flex');
-            loadApiData();
-        };
-
-        window.closeApiModal = () => {
-            document.getElementById('api-modal').classList.add('hidden');
-            document.getElementById('api-modal').classList.remove('flex');
-        };
-
-        async function loadApiData() {
-            if(!activeUser) return;
-            const keyRef = ref(db, `api_keys/${activeUser.uid}`);
-            const userRef = ref(db, `users/${activeUser.uid}`);
-            
-            const [keySnap, userSnap] = await Promise.all([get(keyRef), get(userRef)]);
-            
-            if(keySnap.exists()) {
-                document.getElementById('api-key-display').value = keySnap.val();
-            } else {
-                await regenerateApiKey();
-            }
-
-            const limit = userSnap.exists() ? (userSnap.val().limit ?? 100) : 100;
-            document.getElementById('api-limit-text').innerText = `${limit}/100`;
-            document.getElementById('api-limit-badge').innerText = limit;
-        }
-
-        window.regenerateApiKey = async () => {
-            if(!activeUser) return;
-            const prefixes = ['rzo_', 'rzn_'];
-            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            const randomStr = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            const newKey = prefix + randomStr;
-            
-            await adminSetApiKey(activeUser.uid, newKey);
-            document.getElementById('api-key-display').value = newKey;
-            alert("API Key baru berhasil di-generate!");
-        };
-
-        async function adminSetApiKey(uid, key) {
-            const updates = {};
-            updates[`api_keys/${uid}`] = key;
-            // Set limit default jika belum ada
-            const userRef = ref(db, `users/${uid}`);
-            const userSnap = await get(userRef);
-            if(!userSnap.exists()) {
-                updates[`users/${uid}/limit`] = 100;
-            }
-            await update(ref(db), updates);
         }
         
         document.addEventListener('DOMContentLoaded', () => {
