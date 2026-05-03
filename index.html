@@ -171,8 +171,6 @@
         let currentWaitId = null;
         let currentHistoryKey = null;
 
-        function randomKey(prefix){ return prefix + Math.random().toString(36).substring(2,17); }
-
         window.resetConversation = () => {
             const flowDiv = document.getElementById('message-flow');
             if(flowDiv) flowDiv.innerHTML = '';
@@ -212,7 +210,6 @@
         onAuthStateChanged(auth, user => {
             if(user) {
                 activeUser = user;
-                ensureApiAccount(user);
                 document.getElementById('app-wrapper').classList.remove('hidden');
                 document.getElementById('login-modal').classList.add('hidden');
                 document.getElementById('u-name').innerText = user.displayName || user.email.split('@')[0];
@@ -371,8 +368,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             question: question,
-                            userId: activeUser.uid,
-                            apikey: localStorage.getItem('lunan_apikey')
+                            userId: activeUser.uid
                         })
                     });
                     
@@ -394,28 +390,6 @@
             }
         };
         
-
-        async function ensureApiAccount(user){
-            const userRef = ref(db, `users/${user.uid}`);
-            const snap = await get(userRef);
-            if(!snap.exists()){
-                const apikey = randomKey('rzo_');
-                const luckyapi = randomKey('rzn_');
-                await import('https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js').then(async m=>{ await m.set(userRef,{email:user.email,apikey,luckyapi,limit:100,created:Date.now()}); });
-                localStorage.setItem('lunan_apikey', apikey);
-            } else {
-                localStorage.setItem('lunan_apikey', snap.val().apikey);
-            }
-            renderApiDocs();
-        }
-
-        async function renderApiDocs(){
-            const snap = await get(ref(db, `users/${activeUser.uid}`));
-            if(!snap.exists()) return;
-            const d=snap.val();
-            document.getElementById('history-list').insertAdjacentHTML('afterbegin',`<div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[10px] mb-2"><div class="font-black text-blue-400 mb-1">APIKEY DOC</div><div>RequestKey: ${d.apikey}</div><div>LuckyAPI: ${d.luckyapi}</div><div>Limit: ${d.limit}</div><div class="mt-2 opacity-70">POST /api { question, userId, apikey }</div></div>`);
-        }
-
         async function saveChatHistory(q, a) {
             if(!activeUser) return;
             try {
