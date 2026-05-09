@@ -256,32 +256,67 @@
   <!-- FIREBASE SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      signInWithPopup,
+      GoogleAuthProvider,
+      signOut,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    import {
+      getAnalytics
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyBuo-B9K5nZwrZbeZNFBo2PdmwAJGQCn4U",
+      authDomain: "animesmart-9eeb8.firebaseapp.com",
+      projectId: "animesmart-9eeb8",
+      storageBucket: "animesmart-9eeb8.firebasestorage.app",
+      messagingSenderId: "765356253928",
+      appId: "1:765356253928:web:d0c427dc69bad8880cdf5d",
+      measurementId: "G-Z25RBNKDN4"
     };
 
     const app = initializeApp(firebaseConfig);
+
+    const analytics = getAnalytics(app);
+
     const auth = getAuth(app);
+
     const googleProvider = new GoogleAuthProvider();
 
     window._fbAuth = auth;
-    window._fbSignInEmail = (email, pass) => signInWithEmailAndPassword(auth, email, pass);
-    window._fbCreateUser = (email, pass) => createUserWithEmailAndPassword(auth, email, pass);
-    window._fbGoogleSignIn = () => signInWithPopup(auth, googleProvider);
-    window._fbSignOut = () => signOut(auth);
-    window._fbUpdateProfile = (user, data) => updateProfile(user, data);
+
+    window._fbSignInEmail = (email, pass) =>
+      signInWithEmailAndPassword(auth, email, pass);
+
+    window._fbCreateUser = (email, pass) =>
+      createUserWithEmailAndPassword(auth, email, pass);
+
+    window._fbGoogleSignIn = () =>
+      signInWithPopup(auth, googleProvider);
+
+    window._fbSignOut = () =>
+      signOut(auth);
+
+    window._fbUpdateProfile = (user, data) =>
+      updateProfile(user, data);
 
     onAuthStateChanged(auth, (user) => {
       window._currentUser = user;
-      if (typeof updateNavAuth === 'function') updateNavAuth(user);
-      if (typeof renderSettingPage === 'function') renderSettingPage(user);
+
+      if (typeof updateNavAuth === 'function') {
+        updateNavAuth(user);
+      }
+
+      if (typeof renderSettingPage === 'function') {
+        renderSettingPage(user);
+      }
     });
   </script>
 
