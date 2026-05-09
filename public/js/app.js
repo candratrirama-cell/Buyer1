@@ -72,7 +72,7 @@ function renderSettingPage(user) {
       </div>
       <div class="setting-card">
         <div class="setting-icon">${ICONS.bolt}</div>
-        <div class="setting-info"><div class="setting-title">Tentang Moli</div><div class="setting-desc">Dark Blue Neon Edition v3.0</div></div>
+        <div class="setting-info"><div class="setting-title">Tentang SmartGadget</div><div class="setting-desc">Dark Blue Neon Edition v3.0</div></div>
         <span class="setting-badge">v3.0</span>
       </div>
     `;
@@ -91,7 +91,7 @@ function renderSettingPage(user) {
       </div>
       <div class="profile-name" id="profileNameEl">${esc(savedName)}</div>
       <div class="profile-email">${esc(user.email || '')}</div>
-      <div class="profile-sub">MEMBER MOLI</div>
+      <div class="profile-sub">MEMBER SmartGadget</div>
     </div>
     <div class="setting-card" onclick="clearHistory()">
       <div class="setting-icon">${ICONS.trash}</div>
@@ -100,7 +100,7 @@ function renderSettingPage(user) {
     </div>
     <div class="setting-card">
       <div class="setting-icon">${ICONS.bolt}</div>
-      <div class="setting-info"><div class="setting-title">Tentang Moli</div><div class="setting-desc">Dark Blue Neon Edition v3.0</div></div>
+      <div class="setting-info"><div class="setting-title">Tentang SmartGadget</div><div class="setting-desc">Dark Blue Neon Edition v3.0</div></div>
       <span class="setting-badge">v3.0</span>
     </div>
     <div class="setting-card">
