@@ -1,10 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Buyer1Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+        .login-container {
+            background: #1a1a2e;
+            padding: 48px 40px;
+            border-radius: 24px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #2a2a4a;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+        .login-container h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-container .subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+        .login-container .logo {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        .login-btn {
+            display: inline-block;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 18px;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        .login-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5);
+        }
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .back-link:hover {
+            color: #a29bfe;
+        }
+        .info-box {
+            background: #12121f;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 24px 0;
+            border: 1px solid #2a2a4a;
+            font-size: 13px;
+            color: #888;
+            line-height: 1.6;
+        }
+        .info-box strong {
+            color: #a29bfe;
+        }
+    </style>
+</head>
 <body>
-  <h1>Login untuk Chat</h1>
-  <a href="https://freecloud.order-rz.my.id/FreeCloudi/login/fci_0a3b29ab636d6a0ffee4/url=https%3A%2F%2Fbuyer1.vercel.app%2Fcallback.html">
-    Login dengan FreeCloud
-  </a>
-  <p><a href="index.html">Kembali</a></p>
+
+    <div class="login-container">
+        <div class="logo">💬</div>
+        <h1>Buyer1Chat</h1>
+        <p class="subtitle">Masuk pakai akun FreeCloud kamu</p>
+
+        <div class="info-box">
+            🔐 <strong>Aman</strong> — Kami tidak menyimpan password Anda.<br>
+            Login dilakukan langsung melalui FreeCloud.
+        </div>
+
+        <!-- 
+            ⚠️ GANTI domain-anda.com dengan domain asli website Anda!
+            Contoh: https://buyer1chat.netlify.app/callback.html
+        -->
+        <a href="https://freecloud.order-rz.my.id/FreeCloudi/login/fci_58e42de1fb281ddd91c9/url=https%3A%2F%2Fbuyer1.vercel.app%2Fcallback.html"
+           class="login-btn">
+           🔑 Login dengan FreeCloud
+        </a>
+
+        <a href="index.html" class="back-link">← Kembali ke Chat</a>
+    </div>
+
 </body>
 </html>
