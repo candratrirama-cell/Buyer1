@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Web</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+    #messages { border: 1px solid #ccc; height: 400px; overflow-y: auto; padding: 10px; }
+    .msg { margin: 5px 0; padding: 8px; background: #f1f1f1; border-radius: 5px; }
+    .msg strong { color: #007bff; }
+    #input-area { display: flex; gap: 10px; margin-top: 10px; }
+    #text-input { flex: 1; padding: 10px; }
+    button { padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h1>Chat Room</h1>
+  <div id="user-status"></div>
+  <div id="messages"></div>
+  <div id="input-area">
+    <input id="text-input" placeholder="Ketik pesan..." disabled>
+    <button id="send-btn" disabled>Kirim</button>
+  </div>
+
+  <script>
+    // ===== KONFIGURASI =====
+    const CLOUD_ID = 'proj_529496af22203d7a4f8b';
+    const FREE_API = 'fapi_42ec4079786971baafffede0e7b26a438e6e1d8d';
+    const BASE_URL = `https://freecloud.order-rz.my.id/api/rtdb/${CLOUD_ID}`;
+
+    // ===== CEK LOGIN =====
+    let currentUser = null;
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      currentUser = JSON.parse(userData);
+      document.getElementById('user-status').innerHTML = 
+        `Login sebagai <strong>${currentUser.username}</strong> <button onclick="logout()">Logout</button>`;
+      document.getElementById('text-input').disabled = false;
+      document.getElementById('send-btn').disabled = false;
+    } else {
+      document.getElementById('user-status').innerHTML = 
+        `<a href="login.html">Login dulu</a> untuk chat`;
+    }
+
+    // ===== FUNGSI LOGOUT =====
+    function logout() {
+      localStorage.removeItem('user');
+      location.reload();
+    }
+
+    // ===== AMBIL PESAN =====
+    async function loadMessages() {
+      try {
+        const res = await fetch(`${BASE_URL}/messages?freeapi=${FREE_API}`);
+        const data = await res.json();
+        const container = document.getElementById('messages');
+        container.innerHTML = '';
+        if (data && typeof data === 'object') {
+          // Urutkan berdasarkan timestamp
+          const sorted = Object.entries(data).sort((a, b) => a[1].timestamp - b[1].timestamp);
+          for (const [key, msg] of sorted) {
+            const div = document.createElement('div');
+            div.className = 'msg';
+            div.innerHTML = `<strong>${msg.username}</strong>: ${msg.text}`;
+            container.appendChild(div);
+          }
+          container.scrollTop = container.scrollHeight;
+        }
+      } catch (err) {
+        console.error('Gagal muat pesan:', err);
+      }
+    }
+
+    // ===== KIRIM PESAN =====
+    async function sendMessage() {
+      const input = document.getElementById('text-input');
+      const text = input.value.trim();
+      if (!text || !currentUser) return;
+
+      const payload = {
+        uid: currentUser.uid,
+        username: currentUser.username,
+        text: text,
+        timestamp: Date.now()
+      };
+
+      try {
+        // POST = tambah dengan ID otomatis
+        await fetch(`${BASE_URL}/messages?freeapi=${FREE_API}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        input.value = '';
+        loadMessages(); // Refresh
+      } catch (err) {
+        alert('Gagal kirim pesan');
+        console.error(err);
+      }
+    }
+
+    // ===== EVENT =====
+    document.getElementById('send-btn').onclick = sendMessage;
+    document.getElementById('text-input').onkeydown = (e) => {
+      if (e.key === 'Enter') sendMessage();
+    };
+
+    // ===== POLLING (refresh tiap 3 detik) =====
+    loadMessages();
+    setInterval(loadMessages, 3000);
+  </script>
+</body>
+</html>
