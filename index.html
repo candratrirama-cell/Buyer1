@@ -112,38 +112,88 @@
         .message.own .msg-sender {
             align-self: flex-end;
         }
+        .message .msg-file {
+            max-width: 85%;
+            border-radius: 12px;
+            margin-top: 4px;
+        }
+        .message .msg-file img,
+        .message .msg-file video {
+            max-width: 100%;
+            border-radius: 12px;
+            max-height: 300px;
+        }
+        .message .msg-file a {
+            display: inline-block;
+            padding: 10px 16px;
+            background: #2d2d44;
+            border-radius: 12px;
+            color: #a29bfe;
+            text-decoration: none;
+            font-size: 14px;
+            border: 1px solid #3a3a5a;
+        }
+        .message .msg-file a:hover {
+            background: #3a3a5a;
+        }
         .chat-input {
-            padding: 16px 20px;
+            padding: 12px 16px;
             background: #1a1a2e;
             border-top: 1px solid #2a2a4a;
             display: flex;
-            gap: 12px;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
         }
-        .chat-input input {
+        .chat-input input[type="text"] {
             flex: 1;
-            padding: 12px 18px;
+            padding: 10px 16px;
             border: 1px solid #3a3a5a;
             border-radius: 30px;
             background: #0f0f1a;
             color: #fff;
-            font-size: 15px;
+            font-size: 14px;
             outline: none;
             transition: 0.3s;
+            min-width: 100px;
         }
-        .chat-input input:focus {
+        .chat-input input[type="text"]:focus {
             border-color: #6c5ce7;
         }
-        .chat-input input::placeholder {
+        .chat-input input[type="text"]::placeholder {
             color: #666;
         }
+        .chat-input .file-label {
+            padding: 10px 12px;
+            background: #2d2d44;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: 0.3s;
+            border: 1px solid #3a3a5a;
+        }
+        .chat-input .file-label:hover {
+            background: #3a3a5a;
+        }
+        .chat-input #fileInput {
+            display: none;
+        }
+        .chat-input .file-name {
+            font-size: 11px;
+            color: #888;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         .chat-input button {
-            padding: 12px 24px;
+            padding: 10px 20px;
             background: linear-gradient(135deg, #6c5ce7, #a29bfe);
             border: none;
             border-radius: 30px;
             color: #fff;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             cursor: pointer;
             transition: 0.3s;
         }
@@ -196,6 +246,11 @@
             margin-top: 40px;
             font-size: 14px;
         }
+        .upload-progress {
+            font-size: 12px;
+            color: #a29bfe;
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
@@ -217,6 +272,11 @@
 
         <!-- INPUT -->
         <div class="chat-input">
+            <label class="file-label" id="fileLabel" title="Kirim file (foto/video/dokumen)">
+                📎
+                <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt">
+            </label>
+            <span class="file-name" id="fileName">Tidak ada file</span>
             <input type="text" id="messageInput" placeholder="Ketik pesan..." disabled>
             <button id="sendBtn" disabled onclick="sendMessage()">Kirim</button>
         </div>
@@ -269,6 +329,35 @@
         }
 
         // ============================================================
+        //  TAMPILAN FILE YANG DIPILIH
+        // ============================================================
+        document.getElementById('fileInput').addEventListener('change', function() {
+            const name = this.files[0] ? this.files[0].name : 'Tidak ada file';
+            document.getElementById('fileName').textContent = name;
+        });
+
+        // ============================================================
+        //  UPLOAD FILE KE CLOUDBASE
+        // ============================================================
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch(`${BASE_URL}/upload?freeapi=${FREE_API}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error('Upload gagal: ' + errText);
+            }
+
+            const data = await res.json();
+            return data.fileId; // ID file dari response
+        }
+
+        // ============================================================
         //  AMBIL PESAN (dari Cloudbase Documents)
         // ============================================================
         async function loadMessages() {
@@ -281,13 +370,11 @@
                 const data = await res.json();
                 const container = document.getElementById('chatMessages');
 
-                // Jika data kosong / null
                 if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
                     container.innerHTML = `<div class="empty-chat">Belum ada pesan. Jadilah yang pertama! 🎉</div>`;
                     return;
                 }
 
-                // Ubah object ke array, urutkan berdasarkan timestamp
                 const messages = Object.entries(data)
                     .map(([key, val]) => ({ ...val, _key: key }))
                     .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -295,13 +382,32 @@
                 let html = '';
                 for (const msg of messages) {
                     const isOwn = msg.uid === currentUser.uid;
-                    html += `
-                        <div class="message ${isOwn ? 'own' : ''}">
-                            <span class="msg-sender">${isOwn ? '👤 Kamu' : '👤 ' + (msg.username || 'Unknown')}</span>
-                            <span class="msg-text">${escapeHtml(msg.text || '')}</span>
-                        </div>
-                    `;
+                    html += `<div class="message ${isOwn ? 'own' : ''}">`;
+                    html += `<span class="msg-sender">${isOwn ? '👤 Kamu' : '👤 ' + (msg.username || 'Unknown')}</span>`;
+
+                    // Jika ada file
+                    if (msg.fileId) {
+                        const fileUrl = `${BASE_URL}/download/${msg.fileId}?freeapi=${FREE_API}`;
+                        const isImage = msg.fileType && msg.fileType.startsWith('image/');
+                        const isVideo = msg.fileType && msg.fileType.startsWith('video/');
+
+                        if (isImage) {
+                            html += `<div class="msg-file"><img src="${fileUrl}" alt="${msg.fileName || 'Gambar'}" loading="lazy"></div>`;
+                        } else if (isVideo) {
+                            html += `<div class="msg-file"><video controls src="${fileUrl}"></video></div>`;
+                        } else {
+                            html += `<div class="msg-file"><a href="${fileUrl}" target="_blank">📄 ${msg.fileName || 'Download File'}</a></div>`;
+                        }
+                    }
+
+                    // Jika ada teks
+                    if (msg.text) {
+                        html += `<span class="msg-text">${escapeHtml(msg.text)}</span>`;
+                    }
+
+                    html += `</div>`;
                 }
+
                 container.innerHTML = html;
                 container.scrollTop = container.scrollHeight;
 
@@ -314,21 +420,60 @@
         }
 
         // ============================================================
-        //  KIRIM PESAN (POST ke Cloudbase Documents)
+        //  KIRIM PESAN (TEKS + FILE)
         // ============================================================
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if (!text || !currentUser) return;
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
 
-            const payload = {
-                uid: currentUser.uid,
-                username: currentUser.username,
-                text: text,
-                timestamp: Date.now()
-            };
+            if (!text && !file) {
+                alert('Tulis pesan atau pilih file dulu!');
+                return;
+            }
+            if (!currentUser) {
+                alert('Login dulu!');
+                return;
+            }
+
+            // Disable tombol sementara
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Mengirim...';
 
             try {
+                let fileId = null;
+                let fileName = null;
+                let fileType = null;
+
+                // Upload file dulu jika ada
+                if (file) {
+                    const progressMsg = document.getElementById('fileName');
+                    progressMsg.textContent = '⏳ Uploading...';
+
+                    fileId = await uploadFile(file);
+                    fileName = file.name;
+                    fileType = file.type;
+
+                    progressMsg.textContent = '✅ Upload selesai!';
+                }
+
+                // Siapkan payload
+                const payload = {
+                    uid: currentUser.uid,
+                    username: currentUser.username,
+                    text: text || '',
+                    timestamp: Date.now()
+                };
+
+                if (fileId) {
+                    payload.fileId = fileId;
+                    payload.fileName = fileName;
+                    payload.fileType = fileType;
+                }
+
+                // Kirim ke database
                 const res = await fetch(`${BASE_URL}/doc/messages?freeapi=${FREE_API}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -337,17 +482,25 @@
 
                 if (!res.ok) throw new Error('Gagal kirim pesan');
 
+                // Reset input
                 input.value = '';
+                fileInput.value = '';
+                document.getElementById('fileName').textContent = 'Tidak ada file';
+
+                // Refresh chat
                 await loadMessages();
 
             } catch (err) {
-                alert('❌ Gagal kirim pesan: ' + err.message);
+                alert('❌ Gagal kirim: ' + err.message);
                 console.error(err);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Kirim';
             }
         }
 
         // ============================================================
-        //  UTILITY: ESCAPE HTML (mencegah XSS)
+        //  UTILITY: ESCAPE HTML
         // ============================================================
         function escapeHtml(text) {
             const div = document.createElement('div');
