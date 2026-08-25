@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proses Login - Buyer1Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+        .callback-container {
+            background: #1a1a2e;
+            padding: 48px 40px;
+            border-radius: 24px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #2a2a4a;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #2a2a4a;
+            border-top: 4px solid #6c5ce7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .callback-container h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .callback-container p {
+            color: #888;
+            font-size: 14px;
+        }
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 32px;
+            background: #6c5ce7;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .back-btn:hover {
+            background: #a29bfe;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="callback-container" id="callbackContent">
+        <div class="spinner"></div>
+        <h1>⏳ Memproses Login...</h1>
+        <p>Tunggu sebentar, ya!</p>
+    </div>
+
+    <script>
+        // ============================================================
+        //  AMBIL PARAMETER DARI URL
+        // ============================================================
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get('freecloudi_username');
+        const uid = params.get('freecloudi_uid');
+        const email = params.get('freecloudi_email');
+        const error = params.get('freecloudi_error');
+
+        const container = document.getElementById('callbackContent');
+
+        // ============================================================
+        //  KASUS 1: LOGIN SUKSES
+        // ============================================================
+        if (username && uid) {
+            const user = {
+                uid: uid,
+                username: username,
+                email: email || 'tidak tersedia'
+            };
+
+            // Simpan ke localStorage dengan key khusus Buyer1Chat
+            localStorage.setItem('buyer1chat_user', JSON.stringify(user));
+
+            // Tampilkan sukses sebentar lalu redirect
+            container.innerHTML = `
+                <div style="font-size:48px;margin-bottom:16px;">✅</div>
+                <h1>Login Berhasil!</h1>
+                <p>Halo, <strong style="color:#a29bfe;">${username}</strong>!<br>Kamu akan diarahkan ke chat...</p>
+                <div class="spinner" style="margin-top:20px;"></div>
+            `;
+
+            // Redirect ke index.html setelah 1.5 detik
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        }
+
+        // ============================================================
+        //  KASUS 2: LOGIN DIBATALKAN / ERROR
+        // ============================================================
+        else if (error) {
+            container.innerHTML = `
+                <div class="error-icon">😅</div>
+                <h1>Login Dibatalkan</h1>
+                <p>Kamu membatalkan proses login.</p>
+                <a href="index.html" class="back-btn">Kembali ke Chat</a>
+            `;
+        }
+
+        // ============================================================
+        //  KASUS 3: AKSES LANGSUNG TANPA PARAMETER
+        // ============================================================
+        else {
+            container.innerHTML = `
+                <div class="error-icon">🔐</div>
+                <h1>Halaman Khusus Callback</h1>
+                <p>Silakan login dari halaman utama.</p>
+                <a href="index.html" class="back-btn">Ke Halaman Chat</a>
+            `;
+        }
+    </script>
+
+</body>
+</html>
