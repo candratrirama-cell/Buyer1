@@ -3,408 +3,545 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Private Chat • Login</title>
+    <title>Private Chat • Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
-        /* ----- RESET & GLOBAL ----- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         body {
             min-height: 100vh;
+            background: radial-gradient(circle at 30% 20%, #18182b, #0b0b14);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at 20% 30%, #1a1a2e, #0f0f1a);
             padding: 20px;
         }
 
-        /* ----- LIQUID GLASS CARD ----- */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(18px) saturate(180%);
-            -webkit-backdrop-filter: blur(18px) saturate(180%);
-            border-radius: 48px;
-            padding: 40px 36px;
-            max-width: 440px;
-            width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.10);
-            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-            transition: transform 0.25s ease, box-shadow 0.4s ease;
-            animation: floatIn 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+        /* ----- SIDEBAR (chat list) ----- */
+        .sidebar {
+            width: 320px;
+            min-width: 280px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px) saturate(160%);
+            -webkit-backdrop-filter: blur(16px) saturate(160%);
+            border-radius: 40px;
+            padding: 24px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+            margin-right: 20px;
+            height: fit-content;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.6s ease;
         }
 
-        .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 40px 80px -24px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-        }
-
-        @keyframes floatIn {
+        @keyframes slideIn {
             0% {
                 opacity: 0;
-                transform: scale(0.94) translateY(30px);
+                transform: translateX(-30px);
             }
             100% {
                 opacity: 1;
-                transform: scale(1) translateY(0);
+                transform: translateX(0);
             }
         }
 
-        /* ----- LOGO & HEADER ----- */
-        .chat-header {
+        .sidebar .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .sidebar .brand i {
+            font-size: 1.8rem;
+            color: #b3a0ff;
+            filter: drop-shadow(0 0 12px #7f66ff66);
+        }
+
+        .sidebar .brand h2 {
+            font-weight: 500;
+            font-size: 1.3rem;
+            color: #fff;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar .brand span {
+            font-size: 0.7rem;
+            background: rgba(140, 100, 255, 0.15);
+            padding: 2px 12px;
+            border-radius: 40px;
+            color: #b3a0ff;
+            margin-left: auto;
+        }
+
+        /* chat item */
+        .chat-item {
             display: flex;
             align-items: center;
             gap: 14px;
-            margin-bottom: 28px;
+            padding: 14px 16px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            margin-bottom: 6px;
+            transition: all 0.2s ease;
+            cursor: default;
+            border: 1px solid transparent;
         }
 
-        .chat-header i {
-            font-size: 2.2rem;
-            color: #b3a0ff;
-            filter: drop-shadow(0 0 12px rgba(140, 100, 255, 0.3));
-            animation: pulseGlow 3s infinite alternate;
+        .chat-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.04);
         }
 
-        @keyframes pulseGlow {
+        .chat-item .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, #6a5acd, #a88cff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chat-item .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-item .info .name {
+            color: #fff;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .chat-item .info .msg {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-item .time {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.65rem;
+            align-self: flex-start;
+            margin-top: 4px;
+        }
+
+        /* ----- MAIN CHAT AREA (liquid glass) ----- */
+        .main-chat {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px) saturate(160%);
+            -webkit-backdrop-filter: blur(16px) saturate(160%);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            animation: fadeUp 0.7s ease;
+        }
+
+        @keyframes fadeUp {
             0% {
-                filter: drop-shadow(0 0 8px rgba(140, 100, 255, 0.2));
+                opacity: 0;
+                transform: translateY(20px);
             }
             100% {
-                filter: drop-shadow(0 0 20px rgba(180, 130, 255, 0.5));
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        .chat-header h1 {
-            font-weight: 600;
-            font-size: 1.9rem;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #f0ecff, #c8baff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.9rem;
-            margin-top: -10px;
-            margin-bottom: 28px;
-            border-left: 2px solid rgba(180, 140, 255, 0.3);
-            padding-left: 14px;
-        }
-
-        /* ----- FORM ELEMENTS ----- */
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.45);
-            margin-bottom: 6px;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 16px 18px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.25s ease;
-        }
-
-        .input-group input:focus {
-            border-color: rgba(160, 120, 255, 0.5);
-            background: rgba(255, 255, 255, 0.07);
-            box-shadow: 0 0 0 4px rgba(140, 100, 255, 0.08);
-        }
-
-        .input-group input::placeholder {
-            color: rgba(255, 255, 255, 0.2);
-            font-weight: 300;
-        }
-
-        .input-group .icon-left {
-            position: absolute;
-            left: 18px;
-            top: 42px;
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 0.9rem;
-        }
-
-        .input-group input[type="text"],
-        .input-group input[type="password"] {
-            padding-left: 46px;
-        }
-
-        /* ----- CAPTCHA WRAPPER ----- */
-        .captcha-wrap {
-            margin: 24px 0 22px;
-            padding: 16px 14px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 24px;
-            border: 1px dashed rgba(255, 255, 255, 0.06);
-        }
-
-        .captcha-wrap .fachapta {
-            min-height: 58px;
+        .main-chat .chat-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.95rem;
+            justify-content: space-between;
         }
 
-        /* ----- BUTTON ----- */
-        .btn-login {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 1.05rem;
-            background: linear-gradient(135deg, #7f66ff, #aa8aff);
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            box-shadow: 0 8px 24px rgba(120, 80, 255, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .btn-login:hover {
-            transform: scale(1.02);
-            box-shadow: 0 12px 32px rgba(120, 80, 255, 0.35);
-            background: linear-gradient(135deg, #8f77ff, #b99aff);
-        }
-
-        .btn-login:active {
-            transform: scale(0.98);
-        }
-
-        .btn-login i {
-            font-size: 1rem;
-            transition: transform 0.3s ease;
-        }
-
-        .btn-login:hover i {
-            transform: translateX(4px);
-        }
-
-        /* ----- SOCIAL / ALTERNATE ----- */
-        .divider {
+        .main-chat .chat-header .user {
             display: flex;
             align-items: center;
             gap: 14px;
-            margin: 28px 0 16px;
-            color: rgba(255, 255, 255, 0.15);
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
         }
 
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .btn-freecloud {
-            display: block;
-            text-align: center;
-            padding: 14px;
+        .main-chat .chat-header .user .avatar-big {
+            width: 48px;
+            height: 48px;
             border-radius: 40px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.6);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            font-size: 0.95rem;
-        }
-
-        .btn-freecloud:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: linear-gradient(135deg, #8f77ff, #c8baff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #fff;
-            border-color: rgba(255, 255, 255, 0.12);
+            font-weight: 600;
+            font-size: 1.1rem;
         }
 
-        .btn-freecloud i {
-            margin-right: 10px;
-            color: #a88cff;
+        .main-chat .chat-header .user .name-big {
+            color: #fff;
+            font-weight: 500;
+            font-size: 1.1rem;
         }
 
-        /* ----- RESPONSIVE ----- */
-        @media (max-width: 480px) {
-            .glass-card {
-                padding: 28px 20px;
-                border-radius: 32px;
+        .main-chat .chat-header .user .status {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .main-chat .chat-header .actions i {
+            color: rgba(255, 255, 255, 0.2);
+            margin-left: 18px;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+            cursor: default;
+        }
+
+        .main-chat .chat-header .actions i:hover {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* messages */
+        .messages {
+            flex: 1;
+            padding: 24px 28px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 14px 20px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: msgPop 0.3s ease;
+            align-self: flex-start;
+        }
+
+        .message.me {
+            align-self: flex-end;
+            background: rgba(120, 80, 255, 0.15);
+            border-color: rgba(120, 80, 255, 0.15);
+        }
+
+        @keyframes msgPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.96);
             }
-            .chat-header h1 {
-                font-size: 1.6rem;
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .message .meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* input area */
+        .chat-input {
+            padding: 18px 28px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .chat-input input:focus {
+            border-color: rgba(140, 100, 255, 0.3);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .chat-input input::placeholder {
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        .chat-input button {
+            width: 52px;
+            height: 52px;
+            border-radius: 40px;
+            border: none;
+            background: linear-gradient(135deg, #7f66ff, #aa8aff);
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 20px rgba(120, 80, 255, 0.2);
+        }
+
+        .chat-input button:hover {
+            transform: scale(1.04);
+            box-shadow: 0 8px 28px rgba(120, 80, 255, 0.3);
+        }
+
+        /* logout button */
+        .logout-btn {
+            background: rgba(255, 70, 70, 0.08);
+            border: 1px solid rgba(255, 70, 70, 0.1);
+            color: rgba(255, 150, 150, 0.5);
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 12px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 70, 70, 0.12);
+            color: rgba(255, 150, 150, 0.8);
+        }
+
+        /* scroll */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+        }
+
+        /* responsive */
+        @media (max-width: 820px) {
+            body {
+                flex-direction: column;
+                padding: 12px;
+            }
+            .sidebar {
+                width: 100%;
+                min-width: unset;
+                margin-right: 0;
+                margin-bottom: 16px;
+                max-height: 200px;
+                border-radius: 28px;
+            }
+            .main-chat {
+                max-height: 70vh;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="glass-card">
-        <!-- header -->
-        <div class="chat-header">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
             <i class="fas fa-comment-dots"></i>
-            <h1>Private Chat</h1>
-        </div>
-        <div class="subtitle">
-            <i class="fas fa-lock" style="margin-right:8px;opacity:0.4;"></i> Masuk ke ruang aman
+            <h2>Pesan</h2>
+            <span id="userBadge">●</span>
         </div>
 
-        <!-- FORM LOGIN -->
-        <form id="loginForm" method="POST" action="#">
-            <div class="input-group">
-                <label><i class="fas fa-user icon-left"></i> Username</label>
-                <input type="text" id="username" placeholder="nama pengguna" required />
+        <!-- daftar chat dummy -->
+        <div class="chat-item">
+            <div class="avatar">A</div>
+            <div class="info">
+                <div class="name">Alfian</div>
+                <div class="msg">Halo, ada yang bisa dibantu?</div>
             </div>
-
-            <div class="input-group">
-                <label><i class="fas fa-key icon-left"></i> Password</label>
-                <input type="password" id="password" placeholder="••••••••" required />
+            <div class="time">10:32</div>
+        </div>
+        <div class="chat-item">
+            <div class="avatar">S</div>
+            <div class="info">
+                <div class="name">Sarah</div>
+                <div class="msg">Besok jam 3 ya!</div>
             </div>
-
-            <!-- FaChapta widget -->
-            <div class="captcha-wrap">
-                <div class="fachapta" data-sitekey="fac_8ed1f054776e1193994b6264"></div>
-                <script src="https://freecloud.order-rz.my.id/fachapta-widget.js"></script>
+            <div class="time">09:15</div>
+        </div>
+        <div class="chat-item">
+            <div class="avatar">R</div>
+            <div class="info">
+                <div class="name">Rama</div>
+                <div class="msg">Dokumen sudah saya kirim</div>
             </div>
+            <div class="time">Kemarin</div>
+        </div>
+        <div class="chat-item">
+            <div class="avatar">D</div>
+            <div class="info">
+                <div class="name">Dewi</div>
+                <div class="msg">Terima kasih banyak!</div>
+            </div>
+            <div class="time">Kemarin</div>
+        </div>
 
-            <button type="submit" class="btn-login">
-                <span>Masuk</span>
-                <i class="fas fa-arrow-right"></i>
-            </button>
-        </form>
+        <button class="logout-btn" id="logoutBtn">
+            <i class="fas fa-sign-out-alt" style="margin-right:8px;"></i> Keluar
+        </button>
+    </aside>
 
-        <div class="divider">atau</div>
+    <!-- MAIN CHAT -->
+    <main class="main-chat">
+        <div class="chat-header">
+            <div class="user">
+                <div class="avatar-big">A</div>
+                <div>
+                    <div class="name-big" id="chatPartnerName">Alfian</div>
+                    <div class="status"><i class="fas fa-circle" style="color:#5fdb7a;font-size:0.5rem;margin-right:6px;"></i> Online</div>
+                </div>
+            </div>
+            <div class="actions">
+                <i class="fas fa-phone"></i>
+                <i class="fas fa-video"></i>
+                <i class="fas fa-ellipsis-v"></i>
+            </div>
+        </div>
 
-        <!-- Login dengan FreeCloudi -->
-        <a id="freecloudiLink" href="#" class="btn-freecloud">
-            <i class="fas fa-cloud"></i> Login dengan FreeCloud
-        </a>
+        <!-- messages -->
+        <div class="messages" id="messageContainer">
+            <div class="message">
+                Hai! Ada yang bisa saya bantu?
+                <div class="meta">Alfian • 10:32</div>
+            </div>
+            <div class="message me">
+                Halo, saya mau tanya tentang project kemarin.
+                <div class="meta">Anda • 10:33</div>
+            </div>
+            <div class="message">
+                Oh ya, silakan. Project yang mana?
+                <div class="meta">Alfian • 10:34</div>
+            </div>
+            <div class="message me">
+                Yang desain UI itu. Apakah sudah ada update?
+                <div class="meta">Anda • 10:35</div>
+            </div>
+            <div class="message">
+                Sudah, saya kirimkan link Figma-nya nanti.
+                <div class="meta">Alfian • 10:36</div>
+            </div>
+        </div>
 
-        <p style="margin-top:24px;font-size:0.7rem;color:rgba(255,255,255,0.15);text-align:center;">
-            <i class="fas fa-shield-alt" style="margin-right:6px;"></i> Dilindungi FaChapta
-        </p>
-    </div>
+        <!-- input -->
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Ketik pesan..." />
+            <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </main>
 
     <script>
         (function() {
-            // ----------------------------------------------
-            // 1. Siapkan link FreeCloudi
-            //    Ganti client_id dan callback URL dengan milikmu
-            // ----------------------------------------------
-            const clientId = 'fci_98fc5db4fc8675320135'; // dari gambar kedua
-            const callbackUrl = encodeURIComponent('https://buyer1.vercel.app/callback.html');
-            // ⚠️ GANTI DENGAN URL ASLI MILIKMU, contoh: https://your-domain.com/callback.html
+            // ---- cek login ----
+            const token = localStorage.getItem('fc_token');
+            const username = localStorage.getItem('fc_username');
 
-            const loginLink = document.getElementById('freecloudiLink');
-            if (loginLink) {
-                loginLink.href =
-                    `https://freecloud.order-rz.my.id/FreeCloudi/login/${clientId}/url=${callbackUrl}`;
+            if (!token || !username) {
+                // belum login, arahkan ke login.html
+                window.location.href = 'login.html';
+                return;
             }
 
-            // ----------------------------------------------
-            // 2. Handle login form (dengan verifikasi FaChapta)
-            //    Karena kita pakai mode statis, kita verifikasi
-            //    lewat fetch ke backend FreeCloud.
-            // ----------------------------------------------
-            const form = document.getElementById('loginForm');
+            // tampilkan username di badge
+            const badge = document.getElementById('userBadge');
+            if (badge) {
+                badge.textContent = username;
+                badge.style.fontSize = '0.7rem';
+                badge.style.background = 'rgba(140,100,255,0.15)';
+                badge.style.padding = '2px 12px';
+                badge.style.borderRadius = '40px';
+                badge.style.color = '#b3a0ff';
+                badge.style.marginLeft = 'auto';
+            }
 
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value.trim();
-
-                if (!username || !password) {
-                    alert('Username dan password harus diisi.');
-                    return;
-                }
-
-                // Ambil token captcha dari widget
-                const captchaWidget = document.querySelector('.fachapta');
-                let captchaResponse = '';
-                if (captchaWidget && captchaWidget.dataset.fachaptaResponse) {
-                    captchaResponse = captchaWidget.dataset.fachaptaResponse;
-                }
-
-                if (!captchaResponse) {
-                    alert('Silakan selesaikan captcha terlebih dahulu.');
-                    return;
-                }
-
-                // --- Verifikasi captcha ke FreeCloud ---
-                const secretKey = 'fac_sd57b7a728a430bb0e64d0d938960861ffcfc43865320ffc0'; // dari gambar pertama
-
-                try {
-                    const verifyRes = await fetch('https://freecloud.order-rz.my.id/api/fachapta/siteverify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            secret: secretKey,
-                            response: captchaResponse,
-                        }),
-                    });
-
-                    const result = await verifyRes.json();
-
-                    if (!result.success) {
-                        alert('Verifikasi captcha gagal. Coba lagi.');
-                        // Reset widget? biarkan user refresh manual
-                        return;
-                    }
-
-                    // --- Jika captcha OK, lanjut login ke FreeCloud Auth ---
-                    // Panggil /api/auth/login
-                    const loginRes = await fetch('https://freecloud.order-rz.my.id/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            username: username,
-                            password: password,
-                        }),
-                    });
-
-                    const loginData = await loginRes.json();
-
-                    if (loginRes.ok && loginData.token) {
-                        // Simpan token JWT & user info ke localStorage
-                        localStorage.setItem('fc_token', loginData.token);
-                        localStorage.setItem('fc_username', username);
-                        // Redirect ke halaman chat (index.html)
-                        window.location.href = 'index.html';
-                    } else {
-                        alert('Login gagal: ' + (loginData.message || 'Periksa username/password.'));
-                    }
-                } catch (err) {
-                    console.error('Error:', err);
-                    alert('Terjadi kesalahan. Coba lagi nanti.');
-                }
+            // ---- logout ----
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('fc_token');
+                localStorage.removeItem('fc_username');
+                window.location.href = 'login.html';
             });
 
+            // ---- kirim pesan (simulasi + simpan ke RTDB nanti) ----
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const container = document.getElementById('messageContainer');
+
+            function addMessage(text, isMe = false) {
+                const div = document.createElement('div');
+                div.className = 'message' + (isMe ? ' me' : '');
+                const now = new Date();
+                const time = now.getHours().toString().padStart(2, '0') + ':' +
+                    now.getMinutes().toString().padStart(2, '0');
+                div.innerHTML = `
+                    ${text}
+                    <div class="meta">${isMe ? 'Anda' : 'Alfian'} • ${time}</div>
+                `;
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
+            }
+
+            function sendMessage() {
+                const text = input.value.trim();
+                if (!text) return;
+                addMessage(text, true);
+                input.value = '';
+
+                // Simulasi balasan otomatis (nanti ganti dengan API FreeCloud)
+                setTimeout(() => {
+                    const balasan = [
+                        'Baik, saya catat.',
+                        'Terima kasih infonya!',
+                        'Oke, nanti saya cek.',
+                        'Siap!',
+                        '👍',
+                        'Ada yang lain?'
+                    ];
+                    const random = balasan[Math.floor(Math.random() * balasan.length)];
+                    addMessage(random, false);
+                }, 800 + Math.random() * 1000);
+            }
+
+            sendBtn.addEventListener('click', sendMessage);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // ---- Nanti integrasi dengan FreeCloud RTDB di sini ----
+            // Contoh: PUT / PATCH ke https://freecloud.order-rz.my.id/api/rtdb/:cloudid/chat
+            // dengan header x-freeapi
+            // Lihat dokumentasi di /apidocs
+
+            console.log('✅ Private Chat siap, user:', username);
         })();
     </script>
 
