@@ -1,527 +1,411 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buyer1Chat</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Private Chat • Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
+        /* ----- RESET & GLOBAL ----- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f0f1a;
+            min-height: 100vh;
             display: flex;
+            align-items: center;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #fff;
+            background: radial-gradient(circle at 20% 30%, #1a1a2e, #0f0f1a);
+            padding: 20px;
         }
-        .chat-container {
+
+        /* ----- LIQUID GLASS CARD ----- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border-radius: 48px;
+            padding: 40px 36px;
+            max-width: 440px;
             width: 100%;
-            max-width: 480px;
-            height: 95vh;
-            background: #1a1a2e;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            border: 1px solid #2a2a4a;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: transform 0.25s ease, box-shadow 0.4s ease;
+            animation: floatIn 0.9s cubic-bezier(0.23, 1, 0.32, 1);
         }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 40px 80px -24px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        @keyframes floatIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.94) translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* ----- LOGO & HEADER ----- */
         .chat-header {
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            padding: 20px 24px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
         }
+
+        .chat-header i {
+            font-size: 2.2rem;
+            color: #b3a0ff;
+            filter: drop-shadow(0 0 12px rgba(140, 100, 255, 0.3));
+            animation: pulseGlow 3s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                filter: drop-shadow(0 0 8px rgba(140, 100, 255, 0.2));
+            }
+            100% {
+                filter: drop-shadow(0 0 20px rgba(180, 130, 255, 0.5));
+            }
+        }
+
         .chat-header h1 {
-            font-size: 20px;
-            font-weight: 700;
+            font-weight: 600;
+            font-size: 1.9rem;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #f0ecff, #c8baff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            margin-top: -10px;
+            margin-bottom: 28px;
+            border-left: 2px solid rgba(180, 140, 255, 0.3);
+            padding-left: 14px;
+        }
+
+        /* ----- FORM ELEMENTS ----- */
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-bottom: 6px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .input-group input:focus {
+            border-color: rgba(160, 120, 255, 0.5);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 0 4px rgba(140, 100, 255, 0.08);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            font-weight: 300;
+        }
+
+        .input-group .icon-left {
+            position: absolute;
+            left: 18px;
+            top: 42px;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.9rem;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="password"] {
+            padding-left: 46px;
+        }
+
+        /* ----- CAPTCHA WRAPPER ----- */
+        .captcha-wrap {
+            margin: 24px 0 22px;
+            padding: 16px 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 24px;
+            border: 1px dashed rgba(255, 255, 255, 0.06);
+        }
+
+        .captcha-wrap .fachapta {
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+
+        /* ----- BUTTON ----- */
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            background: linear-gradient(135deg, #7f66ff, #aa8aff);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 24px rgba(120, 80, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 32px rgba(120, 80, 255, 0.35);
+            background: linear-gradient(135deg, #8f77ff, #b99aff);
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+
+        .btn-login i {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-login:hover i {
+            transform: translateX(4px);
+        }
+
+        /* ----- SOCIAL / ALTERNATE ----- */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 28px 0 16px;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 0.75rem;
             letter-spacing: 0.5px;
         }
-        .chat-header .user-info {
-            font-size: 13px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 6px 14px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .chat-header .user-info button {
-            background: #ff6b6b;
-            border: none;
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-        .chat-header .user-info button:hover {
-            background: #ee5a24;
-        }
-        .chat-messages {
+
+        .divider::before,
+        .divider::after {
+            content: '';
             flex: 1;
-            padding: 16px 20px;
-            overflow-y: auto;
-            background: #12121f;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
         }
-        .chat-messages::-webkit-scrollbar {
-            width: 5px;
-        }
-        .chat-messages::-webkit-scrollbar-track {
-            background: #1a1a2e;
-        }
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #6c5ce7;
-            border-radius: 10px;
-        }
-        .message {
-            margin-bottom: 14px;
-            display: flex;
-            flex-direction: column;
-        }
-        .message .msg-sender {
-            font-size: 12px;
-            font-weight: 600;
-            color: #a29bfe;
-            margin-bottom: 3px;
-        }
-        .message .msg-text {
-            background: #2d2d44;
-            padding: 10px 16px;
-            border-radius: 16px;
-            border-top-left-radius: 4px;
-            max-width: 85%;
-            word-wrap: break-word;
-            line-height: 1.5;
-            font-size: 15px;
-        }
-        .message.own .msg-text {
-            background: #6c5ce7;
-            border-top-left-radius: 16px;
-            border-top-right-radius: 4px;
-            align-self: flex-end;
-        }
-        .message.own .msg-sender {
-            align-self: flex-end;
-        }
-        .message .msg-file {
-            max-width: 85%;
-            border-radius: 12px;
-            margin-top: 4px;
-        }
-        .message .msg-file img,
-        .message .msg-file video {
-            max-width: 100%;
-            border-radius: 12px;
-            max-height: 300px;
-        }
-        .message .msg-file a {
-            display: inline-block;
-            padding: 10px 16px;
-            background: #2d2d44;
-            border-radius: 12px;
-            color: #a29bfe;
+
+        .btn-freecloud {
+            display: block;
+            text-align: center;
+            padding: 14px;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.6);
             text-decoration: none;
-            font-size: 14px;
-            border: 1px solid #3a3a5a;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
         }
-        .message .msg-file a:hover {
-            background: #3a3a5a;
-        }
-        .chat-input {
-            padding: 12px 16px;
-            background: #1a1a2e;
-            border-top: 1px solid #2a2a4a;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .chat-input input[type="text"] {
-            flex: 1;
-            padding: 10px 16px;
-            border: 1px solid #3a3a5a;
-            border-radius: 30px;
-            background: #0f0f1a;
+
+        .btn-freecloud:hover {
+            background: rgba(255, 255, 255, 0.05);
             color: #fff;
-            font-size: 14px;
-            outline: none;
-            transition: 0.3s;
-            min-width: 100px;
+            border-color: rgba(255, 255, 255, 0.12);
         }
-        .chat-input input[type="text"]:focus {
-            border-color: #6c5ce7;
+
+        .btn-freecloud i {
+            margin-right: 10px;
+            color: #a88cff;
         }
-        .chat-input input[type="text"]::placeholder {
-            color: #666;
-        }
-        .chat-input .file-label {
-            padding: 10px 12px;
-            background: #2d2d44;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: 0.3s;
-            border: 1px solid #3a3a5a;
-        }
-        .chat-input .file-label:hover {
-            background: #3a3a5a;
-        }
-        .chat-input #fileInput {
-            display: none;
-        }
-        .chat-input .file-name {
-            font-size: 11px;
-            color: #888;
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .chat-input button {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            border: none;
-            border-radius: 30px;
-            color: #fff;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .chat-input button:hover {
-            transform: scale(1.05);
-            opacity: 0.9;
-        }
-        .chat-input button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .login-prompt {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        .login-prompt h2 {
-            font-size: 22px;
-            margin-bottom: 12px;
-            color: #a29bfe;
-        }
-        .login-prompt p {
-            color: #aaa;
-            margin-bottom: 24px;
-        }
-        .login-prompt a {
-            display: inline-block;
-            padding: 14px 40px;
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            color: #fff;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 16px;
-            transition: 0.3s;
-        }
-        .login-prompt a:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
-        }
-        .empty-chat {
-            text-align: center;
-            color: #555;
-            margin-top: 60px;
-            font-size: 14px;
-        }
-        .loading {
-            text-align: center;
-            color: #666;
-            margin-top: 40px;
-            font-size: 14px;
-        }
-        .upload-progress {
-            font-size: 12px;
-            color: #a29bfe;
-            margin-left: 8px;
+
+        /* ----- RESPONSIVE ----- */
+        @media (max-width: 480px) {
+            .glass-card {
+                padding: 28px 20px;
+                border-radius: 32px;
+            }
+            .chat-header h1 {
+                font-size: 1.6rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="chat-container">
-        <!-- HEADER -->
+    <div class="glass-card">
+        <!-- header -->
         <div class="chat-header">
-            <h1>💬 Buyer1Chat</h1>
-            <div class="user-info" id="userInfo">
-                <span id="usernameDisplay">Loading...</span>
-                <button id="logoutBtn" style="display:none;" onclick="logout()">Logout</button>
+            <i class="fas fa-comment-dots"></i>
+            <h1>Private Chat</h1>
+        </div>
+        <div class="subtitle">
+            <i class="fas fa-lock" style="margin-right:8px;opacity:0.4;"></i> Masuk ke ruang aman
+        </div>
+
+        <!-- FORM LOGIN -->
+        <form id="loginForm" method="POST" action="#">
+            <div class="input-group">
+                <label><i class="fas fa-user icon-left"></i> Username</label>
+                <input type="text" id="username" placeholder="nama pengguna" required />
             </div>
-        </div>
 
-        <!-- MESSAGES -->
-        <div class="chat-messages" id="chatMessages">
-            <div class="loading">Memuat pesan...</div>
-        </div>
+            <div class="input-group">
+                <label><i class="fas fa-key icon-left"></i> Password</label>
+                <input type="password" id="password" placeholder="••••••••" required />
+            </div>
 
-        <!-- INPUT -->
-        <div class="chat-input">
-            <label class="file-label" id="fileLabel" title="Kirim file (foto/video/dokumen)">
-                📎
-                <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.zip,.rar,.txt">
-            </label>
-            <span class="file-name" id="fileName">Tidak ada file</span>
-            <input type="text" id="messageInput" placeholder="Ketik pesan..." disabled>
-            <button id="sendBtn" disabled onclick="sendMessage()">Kirim</button>
-        </div>
+            <!-- FaChapta widget -->
+            <div class="captcha-wrap">
+                <div class="fachapta" data-sitekey="fac_8ed1f054776e1193994b6264"></div>
+                <script src="https://freecloud.order-rz.my.id/fachapta-widget.js"></script>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <span>Masuk</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="divider">atau</div>
+
+        <!-- Login dengan FreeCloudi -->
+        <a id="freecloudiLink" href="#" class="btn-freecloud">
+            <i class="fas fa-cloud"></i> Login dengan FreeCloud
+        </a>
+
+        <p style="margin-top:24px;font-size:0.7rem;color:rgba(255,255,255,0.15);text-align:center;">
+            <i class="fas fa-shield-alt" style="margin-right:6px;"></i> Dilindungi FaChapta
+        </p>
     </div>
 
     <script>
-        // ============================================================
-        //  KONFIGURASI
-        // ============================================================
-        const CLOUD_ID = 'proj_6fa34276519565b01e02';
-        const FREE_API = 'fapi_67a93e7a8c281ecf750b7852582d4ebb59549b0f';
-        const BASE_URL = `https://freecloud.order-rz.my.id/api/cloudbase/${CLOUD_ID}`;
+        (function() {
+            // ----------------------------------------------
+            // 1. Siapkan link FreeCloudi
+            //    Ganti client_id dan callback URL dengan milikmu
+            // ----------------------------------------------
+            const clientId = 'fci_98fc5db4fc8675320135'; // dari gambar kedua
+            const callbackUrl = encodeURIComponent('https://tokoku.com/callback.html');
+            // ⚠️ GANTI DENGAN URL ASLI MILIKMU, contoh: https://your-domain.com/callback.html
 
-        // ============================================================
-        //  CEK LOGIN
-        // ============================================================
-        let currentUser = null;
-        const userData = localStorage.getItem('buyer1chat_user');
-
-        if (userData) {
-            try {
-                currentUser = JSON.parse(userData);
-                document.getElementById('usernameDisplay').textContent = '👤 ' + currentUser.username;
-                document.getElementById('logoutBtn').style.display = 'inline-block';
-                document.getElementById('messageInput').disabled = false;
-                document.getElementById('sendBtn').disabled = false;
-            } catch (e) {
-                localStorage.removeItem('buyer1chat_user');
-                currentUser = null;
-            }
-        }
-
-        if (!currentUser) {
-            document.getElementById('chatMessages').innerHTML = `
-                <div class="login-prompt">
-                    <h2>🔐 Login Dulu Yuk!</h2>
-                    <p>Pakai akun FreeCloud kamu untuk masuk ke Buyer1Chat</p>
-                    <a href="login.html">Login dengan FreeCloud</a>
-                </div>
-            `;
-            document.getElementById('usernameDisplay').textContent = '🚫 Belum Login';
-        }
-
-        // ============================================================
-        //  FUNGSI LOGOUT
-        // ============================================================
-        function logout() {
-            localStorage.removeItem('buyer1chat_user');
-            window.location.href = 'index.html';
-        }
-
-        // ============================================================
-        //  TAMPILAN FILE YANG DIPILIH
-        // ============================================================
-        document.getElementById('fileInput').addEventListener('change', function() {
-            const name = this.files[0] ? this.files[0].name : 'Tidak ada file';
-            document.getElementById('fileName').textContent = name;
-        });
-
-        // ============================================================
-        //  UPLOAD FILE KE CLOUDBASE
-        // ============================================================
-        async function uploadFile(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const res = await fetch(`${BASE_URL}/upload?freeapi=${FREE_API}`, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!res.ok) {
-                const errText = await res.text();
-                throw new Error('Upload gagal: ' + errText);
+            const loginLink = document.getElementById('freecloudiLink');
+            if (loginLink) {
+                loginLink.href =
+                    `https://freecloud.order-rz.my.id/FreeCloudi/login/${clientId}/url=${callbackUrl}`;
             }
 
-            const data = await res.json();
-            return data.fileId; // ID file dari response
-        }
+            // ----------------------------------------------
+            // 2. Handle login form (dengan verifikasi FaChapta)
+            //    Karena kita pakai mode statis, kita verifikasi
+            //    lewat fetch ke backend FreeCloud.
+            // ----------------------------------------------
+            const form = document.getElementById('loginForm');
 
-        // ============================================================
-        //  AMBIL PESAN (dari Cloudbase Documents)
-        // ============================================================
-        async function loadMessages() {
-            if (!currentUser) return;
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
 
-            try {
-                const res = await fetch(`${BASE_URL}/doc/messages?freeapi=${FREE_API}`);
-                if (!res.ok) throw new Error('Gagal ambil data');
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
 
-                const data = await res.json();
-                const container = document.getElementById('chatMessages');
-
-                if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
-                    container.innerHTML = `<div class="empty-chat">Belum ada pesan. Jadilah yang pertama! 🎉</div>`;
+                if (!username || !password) {
+                    alert('Username dan password harus diisi.');
                     return;
                 }
 
-                const messages = Object.entries(data)
-                    .map(([key, val]) => ({ ...val, _key: key }))
-                    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                // Ambil token captcha dari widget
+                const captchaWidget = document.querySelector('.fachapta');
+                let captchaResponse = '';
+                if (captchaWidget && captchaWidget.dataset.fachaptaResponse) {
+                    captchaResponse = captchaWidget.dataset.fachaptaResponse;
+                }
 
-                let html = '';
-                for (const msg of messages) {
-                    const isOwn = msg.uid === currentUser.uid;
-                    html += `<div class="message ${isOwn ? 'own' : ''}">`;
-                    html += `<span class="msg-sender">${isOwn ? '👤 Kamu' : '👤 ' + (msg.username || 'Unknown')}</span>`;
+                if (!captchaResponse) {
+                    alert('Silakan selesaikan captcha terlebih dahulu.');
+                    return;
+                }
 
-                    // Jika ada file
-                    if (msg.fileId) {
-                        const fileUrl = `${BASE_URL}/download/${msg.fileId}?freeapi=${FREE_API}`;
-                        const isImage = msg.fileType && msg.fileType.startsWith('image/');
-                        const isVideo = msg.fileType && msg.fileType.startsWith('video/');
+                // --- Verifikasi captcha ke FreeCloud ---
+                const secretKey = 'fac_sd57b7a728a430bb0e64d0d938960861ffcfc43865320ffc0'; // dari gambar pertama
 
-                        if (isImage) {
-                            html += `<div class="msg-file"><img src="${fileUrl}" alt="${msg.fileName || 'Gambar'}" loading="lazy"></div>`;
-                        } else if (isVideo) {
-                            html += `<div class="msg-file"><video controls src="${fileUrl}"></video></div>`;
-                        } else {
-                            html += `<div class="msg-file"><a href="${fileUrl}" target="_blank">📄 ${msg.fileName || 'Download File'}</a></div>`;
-                        }
+                try {
+                    const verifyRes = await fetch('https://freecloud.order-rz.my.id/api/fachapta/siteverify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            secret: secretKey,
+                            response: captchaResponse,
+                        }),
+                    });
+
+                    const result = await verifyRes.json();
+
+                    if (!result.success) {
+                        alert('Verifikasi captcha gagal. Coba lagi.');
+                        // Reset widget? biarkan user refresh manual
+                        return;
                     }
 
-                    // Jika ada teks
-                    if (msg.text) {
-                        html += `<span class="msg-text">${escapeHtml(msg.text)}</span>`;
+                    // --- Jika captcha OK, lanjut login ke FreeCloud Auth ---
+                    // Panggil /api/auth/login
+                    const loginRes = await fetch('https://freecloud.order-rz.my.id/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: username,
+                            password: password,
+                        }),
+                    });
+
+                    const loginData = await loginRes.json();
+
+                    if (loginRes.ok && loginData.token) {
+                        // Simpan token JWT & user info ke localStorage
+                        localStorage.setItem('fc_token', loginData.token);
+                        localStorage.setItem('fc_username', username);
+                        // Redirect ke halaman chat (index.html)
+                        window.location.href = 'index.html';
+                    } else {
+                        alert('Login gagal: ' + (loginData.message || 'Periksa username/password.'));
                     }
-
-                    html += `</div>`;
+                } catch (err) {
+                    console.error('Error:', err);
+                    alert('Terjadi kesalahan. Coba lagi nanti.');
                 }
+            });
 
-                container.innerHTML = html;
-                container.scrollTop = container.scrollHeight;
-
-            } catch (err) {
-                console.error('Gagal load pesan:', err);
-                document.getElementById('chatMessages').innerHTML = `
-                    <div class="empty-chat">⚠️ Gagal memuat pesan. Coba refresh.</div>
-                `;
-            }
-        }
-
-        // ============================================================
-        //  KIRIM PESAN (TEKS + FILE)
-        // ============================================================
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-
-            if (!text && !file) {
-                alert('Tulis pesan atau pilih file dulu!');
-                return;
-            }
-            if (!currentUser) {
-                alert('Login dulu!');
-                return;
-            }
-
-            // Disable tombol sementara
-            const sendBtn = document.getElementById('sendBtn');
-            sendBtn.disabled = true;
-            sendBtn.textContent = 'Mengirim...';
-
-            try {
-                let fileId = null;
-                let fileName = null;
-                let fileType = null;
-
-                // Upload file dulu jika ada
-                if (file) {
-                    const progressMsg = document.getElementById('fileName');
-                    progressMsg.textContent = '⏳ Uploading...';
-
-                    fileId = await uploadFile(file);
-                    fileName = file.name;
-                    fileType = file.type;
-
-                    progressMsg.textContent = '✅ Upload selesai!';
-                }
-
-                // Siapkan payload
-                const payload = {
-                    uid: currentUser.uid,
-                    username: currentUser.username,
-                    text: text || '',
-                    timestamp: Date.now()
-                };
-
-                if (fileId) {
-                    payload.fileId = fileId;
-                    payload.fileName = fileName;
-                    payload.fileType = fileType;
-                }
-
-                // Kirim ke database
-                const res = await fetch(`${BASE_URL}/doc/messages?freeapi=${FREE_API}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!res.ok) throw new Error('Gagal kirim pesan');
-
-                // Reset input
-                input.value = '';
-                fileInput.value = '';
-                document.getElementById('fileName').textContent = 'Tidak ada file';
-
-                // Refresh chat
-                await loadMessages();
-
-            } catch (err) {
-                alert('❌ Gagal kirim: ' + err.message);
-                console.error(err);
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.textContent = 'Kirim';
-            }
-        }
-
-        // ============================================================
-        //  UTILITY: ESCAPE HTML
-        // ============================================================
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ============================================================
-        //  EVENT LISTENER
-        // ============================================================
-        document.getElementById('messageInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        // ============================================================
-        //  POLLING (refresh tiap 4 detik)
-        // ============================================================
-        if (currentUser) {
-            loadMessages();
-            setInterval(loadMessages, 4000);
-        }
+        })();
     </script>
 
 </body>
